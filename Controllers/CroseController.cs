@@ -69,7 +69,7 @@ namespace HuckeWEBAPI.Controllers
                     break;
             }
 
-
+            SQLCommandText += " ORDER BY LTRIM(RTRIM(Name)),CheckDate";
 
             using (SqlConnection CONN = new SqlConnection(connectionString))
             {
