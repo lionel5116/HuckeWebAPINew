@@ -45,27 +45,24 @@ namespace HuckeWEBAPI.Controllers
             List<VendorCROSE> lstCROSEData = new List<VendorCROSE>();
             var connectionString = s_ConnectionStringCROSE;
 
-            string SQLCommandText = $"SELECT VendorNumber,Name,CheckNumber, CheckDate,Amount FROM [EDB].[EXT].[VendorCROSE] ";
+            string SQLCommandText = $"SELECT (VendorNumber + CONVERT(CHAR,[CheckDate]))as random,VendorNumber,Name,CheckNumber, CheckDate,Amount FROM [EDB].[EXT].[VendorCROSE] ";
 
             
-            switch (_searchValues[6])
+            switch (_searchValues[4])
             {
-                case "Vendor_Number":
-                    SQLCommandText += "WHERE VendorNumber = " + "'" + _searchValues[0] + "'";
+                case "VendorNumber":
+                    SQLCommandText += " WHERE VendorNumber = " + "'" + _searchValues[0] + "'";
                     break;
-                case "Vendor_Name":
-                    SQLCommandText += "WHERE Name LIKE " + "'%" + _searchValues[1] + "%'";
+                case "VendorName":
+                    SQLCommandText += " WHERE Name LIKE " + "'%" + _searchValues[1] + "%'";
                     break;
-                case "Date_Range":
-                    SQLCommandText += "WHERE CheckDate BETWEEN " + "'" + _searchValues[4] + "'" + "AND " + "'" + _searchValues[5] + "'";
+                case "VendorNameDate":
+                    SQLCommandText += " WHERE Name LIKE " + "'%" + _searchValues[1] + "%'" + " AND " + " CheckDate BETWEEN " + "'" + _searchValues[2] + "'" + "AND " + "'" + _searchValues[3] + "'";
                     break;
-                case "Amount":
-                    SQLCommandText += "WHERE Amount BETWEEN " + _searchValues[2] + "" + " AND " + "" + _searchValues[3];
+                case "VendorNumberDate":
+                    SQLCommandText += " WHERE VendorNumber LIKE " + "'%" + _searchValues[0] + "%'" + " AND " + " CheckDate BETWEEN " + "'" + _searchValues[2] + "'" + "AND " + "'" + _searchValues[3] + "'";
                     break;
-                case "Date_Range_Amount":
-                    SQLCommandText += "WHERE CheckDate BETWEEN " + "'" + _searchValues[4] + "'" + " AND " + "'" + _searchValues[5] + "'" + " AND Amount BETWEEN " + _searchValues[2] + "" + " AND " + "" + _searchValues[3];
-                    break;
-                case "All":
+                default:
                     break;
             }
 

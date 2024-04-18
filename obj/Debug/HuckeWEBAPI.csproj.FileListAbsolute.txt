@@ -257,7 +257,6 @@ C:\DevProjects\Programming\WebServices\HuckeWebAPI\bin\System.Web.WebPages.Deplo
 C:\DevProjects\Programming\WebServices\HuckeWebAPI\bin\System.Web.WebPages.Razor.xml
 C:\DevProjects\Programming\WebServices\HuckeWebAPI\bin\Antlr3.Runtime.pdb
 C:\DevProjects\Programming\WebServices\HuckeWebAPI\bin\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.xml
-C:\DevProjects\Programming\WebServices\HuckeWebAPI\obj\Debug\HuckeWEBAPI.csproj.AssemblyReference.cache
 C:\DevProjects\Programming\WebServices\HuckeWebAPI\obj\Debug\HuckeWEBAPI.csproj.CoreCompileInputs.cache
 C:\DevProjects\Programming\WebServices\HuckeWebAPI\obj\Debug\HuckeWEBAPI.csproj.CopyComplete
 C:\DevProjects\Programming\WebServices\HuckeWebAPI\obj\Debug\HuckeWEBAPI.dll
