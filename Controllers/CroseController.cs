@@ -46,12 +46,13 @@ namespace HuckeWEBAPI.Controllers
             var connectionString = s_ConnectionStringCROSE;
 
             string SQLCommandText = $"SELECT (VendorNumber + CONVERT(CHAR,[CheckDate]))as random,VendorNumber,Name,CheckNumber, CheckDate,Amount FROM [EDB].[EXT].[VendorCROSE] ";
+            //string SQLCommandText = $"SELECT (VendorNumber + CONVERT(CHAR,[CheckDate]))as random,VendorNumber,Name,CheckNumber, CheckDate,Amount FROM VendorData";
 
-            
+
             switch (_searchValues[4])
             {
                 case "VendorNumber":
-                    SQLCommandText += " WHERE VendorNumber = " + "'" + _searchValues[0] + "'";
+                    SQLCommandText += " WHERE VendorNumber LIKE " + "'%" + _searchValues[0] + "%'";
                     break;
                 case "VendorName":
                     SQLCommandText += " WHERE Name LIKE " + "'%" + _searchValues[1] + "%'";
@@ -83,6 +84,7 @@ namespace HuckeWEBAPI.Controllers
                     foreach (DataRow row in ds.Tables[0].Rows)
                     {
                         oVendorCROSE = new VendorCROSE();
+                        oVendorCROSE.random = row["random"].ToString();
                         oVendorCROSE.VendorNumber = row["VendorNumber"].ToString();
                         oVendorCROSE.Name = row["Name"].ToString();
                         oVendorCROSE.CheckNumber = row["CheckNumber"].ToString();
@@ -96,6 +98,51 @@ namespace HuckeWEBAPI.Controllers
                 }
             }
             
+
+            return lstCROSEData;
+        }
+
+        [Route("api/crose/getCroseVendorList/")]
+        [HttpGet]
+        public List<VendorCROSE> getCroseVendorList()
+        {
+
+
+
+            VendorCROSE oVendorCROSE;
+            List<VendorCROSE> lstCROSEData = new List<VendorCROSE>();
+            var connectionString = s_ConnectionStringCROSE;
+
+            string SQLCommandText = $"SELECT (VendorNumber + CONVERT(CHAR,[CheckDate]))as random,VendorNumber,Name FROM [EDB].[EXT].[VendorCROSE] ";
+        
+
+            SQLCommandText += " ORDER BY LTRIM(RTRIM(Name))";
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    if (ds.Tables[0].Rows.Count > 0) { } else { return null; };
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oVendorCROSE = new VendorCROSE();
+                        oVendorCROSE.random = row["random"].ToString();
+                        oVendorCROSE.VendorNumber = row["VendorNumber"].ToString();
+                        oVendorCROSE.Name = row["Name"].ToString();
+                        lstCROSEData.Add(oVendorCROSE);
+                        oVendorCROSE = null;
+                    }
+
+                }
+            }
+
 
             return lstCROSEData;
         }
