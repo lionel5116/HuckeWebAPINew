@@ -80,11 +80,11 @@ namespace HuckeWEBAPI.Controllers
                     da.Fill(ds);
 
                     if (ds.Tables[0].Rows.Count > 0) { } else { return null; };
-
+                    int i = 0;
                     foreach (DataRow row in ds.Tables[0].Rows)
                     {
                         oVendorCROSE = new VendorCROSE();
-                        oVendorCROSE.random = row["random"].ToString();
+                        oVendorCROSE.random = i.ToString();
                         oVendorCROSE.VendorNumber = row["VendorNumber"].ToString();
                         oVendorCROSE.Name = row["Name"].ToString();
                         oVendorCROSE.CheckNumber = row["CheckNumber"].ToString();
@@ -92,6 +92,7 @@ namespace HuckeWEBAPI.Controllers
                         oVendorCROSE.Amount = double.Parse(row["Amount"].ToString());
 
                         lstCROSEData.Add(oVendorCROSE);
+                        i++;
                         oVendorCROSE = null;
                     }
 
@@ -113,10 +114,8 @@ namespace HuckeWEBAPI.Controllers
             List<VendorCROSE> lstCROSEData = new List<VendorCROSE>();
             var connectionString = s_ConnectionStringCROSE;
 
-            string SQLCommandText = $"SELECT (VendorNumber + CONVERT(CHAR,[CheckDate]))as random,VendorNumber,Name FROM [EDB].[EXT].[VendorCROSE] ";
-        
-
-            SQLCommandText += " ORDER BY LTRIM(RTRIM(Name))";
+            string SQLCommandText = $"SELECT distinct(VendorNumber), Name FROM [EDB].[EXT].[VendorCROSE] ";
+            SQLCommandText += " ORDER BY Name";
 
             using (SqlConnection CONN = new SqlConnection(connectionString))
             {
@@ -127,17 +126,18 @@ namespace HuckeWEBAPI.Controllers
                     da.SelectCommand = cmd;
                     DataSet ds = new DataSet();
                     da.Fill(ds);
-
+                    int i = 0;
                     if (ds.Tables[0].Rows.Count > 0) { } else { return null; };
 
                     foreach (DataRow row in ds.Tables[0].Rows)
                     {
                         oVendorCROSE = new VendorCROSE();
-                        oVendorCROSE.random = row["random"].ToString();
+                        oVendorCROSE.random = i.ToString();
                         oVendorCROSE.VendorNumber = row["VendorNumber"].ToString();
                         oVendorCROSE.Name = row["Name"].ToString();
                         lstCROSEData.Add(oVendorCROSE);
                         oVendorCROSE = null;
+                        i++;
                     }
 
                 }
