@@ -12,6 +12,9 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Security.Cryptography;
 
+using System.Text.Json.Serialization;
+using System.Text.Json;
+
 using System.Web.Script.Serialization;
 
 namespace HuckeWEBAPI.Controllers
@@ -36,6 +39,17 @@ namespace HuckeWEBAPI.Controllers
             public DateTime StartDate { get; }
             public DateTime EndDate { get; }
         }
+
+        public class VendorList {
+            public string random { get; set; }
+            public string Name { get; set; }
+            public string VendorNumber { get; set; }
+            public string CheckNumber { get; set; }
+            public string CheckDate { get; set; }
+            public  double Amount { get; set; }
+
+        }
+
 
         [Route("api/crose/getCroseVendorData/{croseArgs}")]
         [HttpGet]
@@ -252,6 +266,55 @@ namespace HuckeWEBAPI.Controllers
             }
         }
 
+        [Route("api/crose/GetCroseTransactions")]
+        [HttpGet]
+        public List<VendorList> GetCroseTransactions()
+        {
+            var _vendorListData = new List<VendorList>();
 
+            var options = new JsonSerializerOptions()
+            {
+                NumberHandling = JsonNumberHandling.AllowReadingFromString |
+                 JsonNumberHandling.WriteAsString
+            };
+
+            string path = System.IO.Path.GetDirectoryName(
+                System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase).Substring(6);
+
+            path += "\\CPI_VENDOR_DATA.JSON.json";
+
+
+            using (StreamReader r = new StreamReader(path))
+            {
+                string json = r.ReadToEnd();
+                _vendorListData = JsonSerializer.Deserialize<List<VendorList>>(json, options);
+            }
+
+            if (_vendorListData != null && _vendorListData.Count > 0)
+            {
+                Console.WriteLine("Number of records: " + _vendorListData.Count);
+
+                /*
+                foreach(var vendor in _vendorListData) {
+                    Console.WriteLine($"{vendor.Name}- {vendor.VendorNumber}");
+                }
+                */
+
+                //using a LINQ QUERY
+                var jnames = _vendorListData.Where(p => p.Name.StartsWith("J"));
+                foreach (var vendor in jnames)
+                {
+                    Console.WriteLine($"{vendor.Name}- {vendor.VendorNumber}");
+                }
+
+                return _vendorListData;
+            }
+            else
+            {
+                return null;
+            }
+
+
+        }
     }
 }
