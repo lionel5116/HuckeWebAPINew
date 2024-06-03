@@ -366,3 +366,4 @@ C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Text.Enco
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Text.Json.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Threading.Tasks.Extensions.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.ValueTuple.xml
+C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\obj\Debug\HuckeWEBAPI.csproj.AssemblyReference.cache
