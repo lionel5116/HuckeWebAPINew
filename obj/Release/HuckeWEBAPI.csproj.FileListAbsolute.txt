@@ -227,7 +227,6 @@ C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\roslyn\vbc.rsp
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\roslyn\VBCSCompiler.exe
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\roslyn\VBCSCompiler.exe.config
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\Antlr3.Runtime.dll
-C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\Microsoft.Bcl.AsyncInterfaces.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\Microsoft.Web.Infrastructure.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\Newtonsoft.Json.dll
@@ -236,8 +235,6 @@ C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Memory.dl
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Net.Http.Formatting.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Numerics.Vectors.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Runtime.CompilerServices.Unsafe.dll
-C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Text.Encodings.Web.dll
-C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Text.Json.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Threading.Tasks.Extensions.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.ValueTuple.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Web.Cors.dll
@@ -252,14 +249,11 @@ C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Web.WebPa
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Web.WebPages.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Web.WebPages.Razor.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\WebGrease.dll
-C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\Microsoft.Bcl.AsyncInterfaces.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Buffers.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Memory.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Net.Http.Formatting.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Numerics.Vectors.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Runtime.CompilerServices.Unsafe.xml
-C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Text.Encodings.Web.xml
-C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Text.Json.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Threading.Tasks.Extensions.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.ValueTuple.xml
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\bin\System.Web.Http.xml

@@ -12,8 +12,8 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Security.Cryptography;
 
-using System.Text.Json.Serialization;
-using System.Text.Json;
+//using System.Text.Json.Serialization;
+//using System.Text.Json;
 using Newtonsoft.Json;
 
 using System.Web.Script.Serialization;
@@ -324,11 +324,14 @@ namespace HuckeWEBAPI.Controllers
         {
             var _vendorListData = new List<VendorList>();
 
-            var options = new JsonSerializerOptions()
+           /* var options = new JsonSerializerOptions()
             {
                 NumberHandling = JsonNumberHandling.AllowReadingFromString |
                  JsonNumberHandling.WriteAsString
             };
+           */
+
+
 
             string path = System.IO.Path.GetDirectoryName(
                 System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase).Substring(6);
@@ -338,8 +341,10 @@ namespace HuckeWEBAPI.Controllers
 
             using (StreamReader r = new StreamReader(path))
             {
-                string json = r.ReadToEnd();
-                _vendorListData = System.Text.Json.JsonSerializer.Deserialize<List<VendorList>>(json, options);
+                 string json = r.ReadToEnd();
+                // _vendorListData = System.Text.Json.JsonSerializer.Deserialize<List<VendorList>>(json, options);
+                _vendorListData = JsonConvert.DeserializeObject<List<VendorList>>(json);
+
             }
 
             if (_vendorListData != null && _vendorListData.Count > 0)
