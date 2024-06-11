@@ -336,7 +336,7 @@ namespace HuckeWEBAPI.Controllers
             string path = System.IO.Path.GetDirectoryName(
                 System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase).Substring(6);
 
-            path += "\\CPI_VENDOR_DATA.JSON.json";
+            path += "\\CPI_VENDOR_DATA.json";
 
 
             using (StreamReader r = new StreamReader(path))
