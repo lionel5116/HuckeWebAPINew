@@ -191,6 +191,7 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\ClientController.cs" />
     <Compile Include="Controllers\CroseController.cs" />
+    <Compile Include="Controllers\CrosswalkController.cs" />
     <Compile Include="Controllers\DACController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\IdentityInfoController.cs" />
@@ -204,6 +205,7 @@
     <Compile Include="Models\CroseArgs.cs" />
     <Compile Include="Models\MainAccountInfo.cs" />
     <Compile Include="Models\PropertyInfo.cs" />
+    <Compile Include="Models\SchoolListing.cs" />
     <Compile Include="Models\VendorCROSE.cs" />
     <Compile Include="Models\VoteSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
