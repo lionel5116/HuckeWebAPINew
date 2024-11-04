@@ -203,7 +203,9 @@
     <Compile Include="Models\BTClientData.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\CroseArgs.cs" />
+    <Compile Include="Models\CrosswalkData.cs" />
     <Compile Include="Models\MainAccountInfo.cs" />
+    <Compile Include="Models\Positions.cs" />
     <Compile Include="Models\PropertyInfo.cs" />
     <Compile Include="Models\SchoolListing.cs" />
     <Compile Include="Models\VendorCROSE.cs" />
