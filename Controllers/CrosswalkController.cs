@@ -501,5 +501,70 @@ namespace HuckeWEBAPI.Controllers
 
             return bSuccess;
         }
+        
+        [Route("api/Crosswalk/fetchCrosswalkEntriesAllParameters")]
+        [HttpPost]
+        public List<CrosswalkData> fetchCrosswalkEntriesAllParameters([FromBody] CrosswalkData oCrosswalkEntryData)
+        {
+            CrosswalkData oCrosswalkData;
+            List<CrosswalkData> lstCrosswalkData = new List<CrosswalkData>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+            SQLCommandText = @"SELECT * FROM CrossWalk ";
+            SQLCommandText += "WHERE SchoolName = ";
+            SQLCommandText += "'";
+            SQLCommandText += oCrosswalkEntryData.SchoolName;
+            SQLCommandText += "'";
+            SQLCommandText += " AND ";
+            SQLCommandText += "Position = ";
+            SQLCommandText += "'";
+            SQLCommandText += oCrosswalkEntryData.Position;
+            SQLCommandText += "'";
+            SQLCommandText += " AND ";
+            SQLCommandText += "EmployeeID = ";
+            SQLCommandText += "'";
+            SQLCommandText += oCrosswalkEntryData.EmployeeID;
+            SQLCommandText += "'";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkData = new CrosswalkData();
+                        oCrosswalkData.EmployeeID = row["EmployeeID"].ToString();
+                        oCrosswalkData.Position = row["Position"].ToString();
+                        oCrosswalkData.SchoolName = row["SchoolName"].ToString();
+                        oCrosswalkData.DateAdded = DateTime.Parse(row["DateAdded"].ToString());
+                        oCrosswalkData.CRecordID = int.Parse(row["CRecordID"].ToString());
+                        lstCrosswalkData.Add(oCrosswalkData);
+                        oCrosswalkData = null;
+                    }
+                }
+            }
+
+            return lstCrosswalkData;
+        }
     }
 }
