@@ -338,15 +338,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT EmployeeID,Position,SchoolName,DateAdded FROM CrossWalk ORDER BY Position";
+                    SQLCommandText = @"SELECT EmployeeID,Position,SchoolName,DateAdded,CRecordID FROM CrossWalk ORDER BY Position";
                     break;
                 case "DEV":
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT EmployeeID,Position,SchoolName,DateAdded FROM CrossWalk ORDER BY Position";
+                    SQLCommandText = @"SELECT EmployeeID,Position,SchoolName,DateAdded,CRecordID FROM CrossWalk ORDER BY Position";
                     break;
                 default:
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT EmployeeID,Position,SchoolName,DateAdded FROM CrossWalk ORDER BY Position";
+                    SQLCommandText = @"SELECT EmployeeID,Position,SchoolName,DateAdded,CRecordID FROM CrossWalk ORDER BY Position";
                     break;
             }
 
@@ -367,6 +367,7 @@ namespace HuckeWEBAPI.Controllers
                         oCrosswalkData.Position = row["Position"].ToString();
                         oCrosswalkData.SchoolName = row["SchoolName"].ToString();
                         oCrosswalkData.DateAdded = DateTime.Parse(row["DateAdded"].ToString());
+                        oCrosswalkData.CRecordID = int.Parse(row["CRecordID"].ToString());
                         lstCrosswalkData.Add(oCrosswalkData);
                         oCrosswalkData = null;
                     }
@@ -374,6 +375,131 @@ namespace HuckeWEBAPI.Controllers
             }
 
             return lstCrosswalkData;
+        }
+        
+        [Route("api/Crosswalk/fetchCrosswalkEntriesFilteredBySchool/{SchoolName}")]
+        [HttpGet]
+        public List<CrosswalkData> fetchCrosswalkEntriesFilteredBySchool(string SchoolName)
+        {
+            CrosswalkData oCrosswalkData;
+            List<CrosswalkData> lstCrosswalkData = new List<CrosswalkData>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+            SQLCommandText = @"SELECT EmployeeID,Position,SchoolName,DateAdded,CRecordID FROM CrossWalk ";
+            SQLCommandText += "WHERE SchoolName = ";
+            SQLCommandText += "'";
+            SQLCommandText += SchoolName;
+            SQLCommandText += "'";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkData = new CrosswalkData();
+                        oCrosswalkData.EmployeeID = row["EmployeeID"].ToString();
+                        oCrosswalkData.Position = row["Position"].ToString();
+                        oCrosswalkData.SchoolName = row["SchoolName"].ToString();
+                        oCrosswalkData.DateAdded = DateTime.Parse(row["DateAdded"].ToString());
+                        oCrosswalkData.CRecordID = int.Parse(row["CRecordID"].ToString());
+                        lstCrosswalkData.Add(oCrosswalkData);
+                        oCrosswalkData = null;
+                    }
+                }
+            }
+
+            return lstCrosswalkData;
+        }
+
+        [HttpPost]
+        [Route("api/Crosswalk/DeleteCrosswalkRecord")]
+        public bool DeleteCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
+        {
+            bool bSuccess = false;
+
+
+            var connectionString = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+            string SQLCommandText = "";
+            SQLCommandText = @"DELETE CrossWalk ";
+            SQLCommandText += "WHERE SchoolName = ";
+            SQLCommandText += "'";
+            SQLCommandText += oCrosswalkEntryData.SchoolName;
+            SQLCommandText += "'";
+            SQLCommandText += " AND ";
+            SQLCommandText += "Position = ";
+            SQLCommandText += "'";
+            SQLCommandText += oCrosswalkEntryData.Position;
+            SQLCommandText += "'";
+            SQLCommandText += " AND ";
+            SQLCommandText += "EmployeeID = ";
+            SQLCommandText += "'";
+            SQLCommandText += oCrosswalkEntryData.EmployeeID;
+            SQLCommandText += "'";
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+
+            return bSuccess;
         }
     }
 }
