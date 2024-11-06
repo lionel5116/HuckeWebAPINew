@@ -160,7 +160,7 @@ namespace HuckeWEBAPI.Controllers
 
             //IF NOT EXISTS(SELECT 1 FROM StudentEntryData WHERE id = @id)
             const string sql2 = @"
-                                IF NOT EXISTS(SELECT 1 FROM CrossWalk WHERE EmployeeID = @EmployeeID AND Position = @Position)
+                                IF NOT EXISTS(SELECT 1 FROM CrossWalk WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName)
                                     BEGIN
                                         INSERT INTO CrossWalk(
                                            EmployeeID,
@@ -180,7 +180,7 @@ namespace HuckeWEBAPI.Controllers
                                        Position = @Position ,
                                        SchoolName = @SchoolName,
                                        DateAdded = @DateAdded 
-                                       WHERE EmployeeID = @EmployeeID AND Position = @Position
+                                       WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName
                                     END";
 
             using (SqlConnection CONN = new SqlConnection(connectionString))
@@ -565,6 +565,122 @@ namespace HuckeWEBAPI.Controllers
             }
 
             return lstCrosswalkData;
+        }
+
+        [HttpPost]
+        [Route("api/Crosswalk/AddEmployees")]
+        public void AddEmployees([FromBody] EmployeeTable oEmployeeTableItem)
+        {
+
+            var sqlStatement = "";
+            var connectionString = "";
+            var _SEARCH_STRING = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+            _SEARCH_STRING += "INSERT INTO EmployeeTable (EmployeeID,SchoolName) ";
+            _SEARCH_STRING += " VALUES ";
+            _SEARCH_STRING += "(";
+            _SEARCH_STRING += "'";
+            _SEARCH_STRING += oEmployeeTableItem.EmployeeID;
+            _SEARCH_STRING += "'";
+
+            _SEARCH_STRING += ",";
+            
+
+            _SEARCH_STRING += "'";
+            _SEARCH_STRING += oEmployeeTableItem.SchoolName;
+            _SEARCH_STRING += "'";
+            _SEARCH_STRING += ")";
+
+            sqlStatement = _SEARCH_STRING;
+
+
+
+            // return;
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sqlStatement, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+
+                    CONN.Close();
+                }
+            }
+
+
+        }
+
+
+        [Route("api/Crosswalk/fetchEmployeeData/")]
+        [HttpGet]
+        public List<EmployeeTable> fetchEmployeeData()
+        {
+            EmployeeTable oEmployeeTable;
+            List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] ORDER BY EmployeeID";
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] ORDER BY EmployeeID";
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] ORDER BY EmployeeID";
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oEmployeeTable = new EmployeeTable();
+                        oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
+                        oEmployeeTable.SchoolName = row["SchoolName"].ToString();
+                        lstEmployeeTableData.Add(oEmployeeTable);
+                        oEmployeeTable = null;
+                    }
+                }
+            }
+
+            return lstEmployeeTableData;
         }
     }
 }
