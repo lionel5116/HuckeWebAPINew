@@ -647,15 +647,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT * FROM [EmployeeTable] ORDER BY EmployeeID";
+                    SQLCommandText = @"SELECT EmployeeID,[SchoolName] FROM [EmployeeTable] ORDER BY EmployeeID";
                     break;
                 case "DEV":
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT * FROM [EmployeeTable] ORDER BY EmployeeID";
+                    SQLCommandText = @"SELECT EmployeeID,[SchoolName] FROM [EmployeeTable] ORDER BY EmployeeID";
                     break;
                 default:
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT * FROM [EmployeeTable] ORDER BY EmployeeID";
+                    SQLCommandText = @"SELECT EmployeeID,[SchoolName] FROM [EmployeeTable] ORDER BY EmployeeID";
                     break;
             }
 
@@ -674,6 +674,55 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable = new EmployeeTable();
                         oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
                         oEmployeeTable.SchoolName = row["SchoolName"].ToString();
+                        lstEmployeeTableData.Add(oEmployeeTable);
+                        oEmployeeTable = null;
+                    }
+                }
+            }
+
+            return lstEmployeeTableData;
+        }
+
+        [Route("api/Crosswalk/fetchEmployeeIDs/")]
+        [HttpGet]
+        public List<EmployeeIDs> fetchEmployeeIDs()
+        {
+            EmployeeIDs oEmployeeTable;
+            List<EmployeeIDs> lstEmployeeTableData = new List<EmployeeIDs>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT EmployeeID FROM [EmployeeTable] ORDER BY EmployeeID";
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT EmployeeID FROM [EmployeeTable] ORDER BY EmployeeID";
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT EmployeeID FROM [EmployeeTable] ORDER BY EmployeeID";
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oEmployeeTable = new EmployeeIDs();
+                        oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
                         lstEmployeeTableData.Add(oEmployeeTable);
                         oEmployeeTable = null;
                     }
