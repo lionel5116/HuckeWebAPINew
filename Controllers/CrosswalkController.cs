@@ -289,15 +289,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT Position FROM Positions ORDER BY Position";
+                    SQLCommandText = @"SELECT p.Position from Positions p WHERE p.Position NOT in (SELECT[Position] FROM CrossWalk) ORDER BY Position";
                     break;
                 case "DEV":
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT Position FROM Positions ORDER BY Position";
+                    SQLCommandText = @"SELECT p.Position from Positions p WHERE p.Position NOT in (SELECT[Position] FROM CrossWalk) ORDER BY Position";
                     break;
                 default:
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT Position FROM Positions ORDER BY Position";
+                    SQLCommandText = @"SELECT p.Position from Positions p WHERE p.Position NOT in (SELECT[Position] FROM CrossWalk) ORDER BY Position";
                     break;
             }
 
@@ -633,9 +633,9 @@ namespace HuckeWEBAPI.Controllers
         }
 
 
-        [Route("api/Crosswalk/fetchEmployeeData/")]
+        [Route("api/Crosswalk/fetchEmployeeData/{EmployeeID}")]
         [HttpGet]
-        public List<EmployeeTable> fetchEmployeeData()
+        public List<EmployeeTable> fetchEmployeeData(string EmployeeID)
         {
             EmployeeTable oEmployeeTable;
             List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
@@ -647,15 +647,24 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT EmployeeID,[SchoolName] FROM [EmployeeTable] ORDER BY EmployeeID";
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE EmployeeID =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += EmployeeID;
+                    SQLCommandText += "'";
                     break;
                 case "DEV":
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT EmployeeID,[SchoolName] FROM [EmployeeTable] ORDER BY EmployeeID";
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE EmployeeID =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += EmployeeID;
+                    SQLCommandText += "'";
                     break;
                 default:
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT EmployeeID,[SchoolName] FROM [EmployeeTable] ORDER BY EmployeeID";
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE EmployeeID =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += EmployeeID;
+                    SQLCommandText += "'";
                     break;
             }
 
@@ -674,6 +683,13 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable = new EmployeeTable();
                         oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
                         oEmployeeTable.SchoolName = row["SchoolName"].ToString();
+
+                        oEmployeeTable.EmployeeName = row["EmployeeName"].ToString();
+                        oEmployeeTable.Role = row["Role"].ToString();
+                        oEmployeeTable.Certification = row["Certification"].ToString();
+
+
+
                         lstEmployeeTableData.Add(oEmployeeTable);
                         oEmployeeTable = null;
                     }
@@ -731,5 +747,61 @@ namespace HuckeWEBAPI.Controllers
 
             return lstEmployeeTableData;
         }
+
+        [Route("api/Crosswalk/fetchEmployeeDetails/{EmployeeID}")]
+        [HttpGet]
+        public List<CrosswalkData> fetchEmployeeDetails(string SchoolName)
+        {
+            CrosswalkData oCrosswalkData;
+            List<CrosswalkData> lstCrosswalkData = new List<CrosswalkData>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+            SQLCommandText = @"SELECT EmployeeID,Position,SchoolName,DateAdded,CRecordID FROM CrossWalk ";
+            SQLCommandText += "WHERE SchoolName = ";
+            SQLCommandText += "'";
+            SQLCommandText += SchoolName;
+            SQLCommandText += "'";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkData = new CrosswalkData();
+                        oCrosswalkData.EmployeeID = row["EmployeeID"].ToString();
+                        oCrosswalkData.Position = row["Position"].ToString();
+                        oCrosswalkData.SchoolName = row["SchoolName"].ToString();
+                        oCrosswalkData.DateAdded = DateTime.Parse(row["DateAdded"].ToString());
+                        oCrosswalkData.CRecordID = int.Parse(row["CRecordID"].ToString());
+                        lstCrosswalkData.Add(oCrosswalkData);
+                        oCrosswalkData = null;
+                    }
+                }
+            }
+
+            return lstCrosswalkData;
+        }
+
     }
 }
