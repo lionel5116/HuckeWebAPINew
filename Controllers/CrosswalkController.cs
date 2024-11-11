@@ -804,16 +804,42 @@ namespace HuckeWEBAPI.Controllers
 
             return lstCrosswalkData;
         }
-        
-        [Route("api/Crosswalk/fetchEmployeeIDSBySchoolName/{SchoolName}")]
+
+
+        /*
+        [Route("api/Crosswalk/fetchEmployeeDataBySchoolName/{SchoolName}")]
         [HttpGet]
-        public List<EmployeeTable> fetchEmployeeIDSBySchoolName(string SchoolName)
+        public List<EmployeeTable> fetchEmployeeDataBySchoolName(string SchoolName)
         {
             EmployeeTable oEmployeeTable;
             List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
 
             var connectionString = "";
             string SQLCommandText = "";
+            string SQLCommandTextMultiline = @"SELECT e.EmployeeID,
+               e.SchoolName,
+	           e.EmployeeName,
+	           e.Role,
+	           e.Certification,
+	           CrossWalked = CASE
+
+                             WHEN c.CRecordID IS NOT NULL THEN 'YES' ELSE 'NO'
+
+                             END
+          FROM EmployeeTable e
+          left join
+          CrossWalk c
+          on e.EmployeeID = c.EmployeeID
+          WHERE
+          e.SchoolName = @SchoolName";
+
+            string SQLCommandTextMultiline2 = "SELECT e.EmployeeID, e.SchoolName, e.EmployeeName,e.Role,e.Certification,";
+            SQLCommandTextMultiline2 += " CrossWalked = CASE WHEN c.CRecordID IS NOT NULL THEN 'YES' ELSE 'NO' END ";
+            SQLCommandTextMultiline2 += "FROM EmployeeTable e left join CrossWalk c on e.EmployeeID = c.EmployeeID WHERE e.SchoolName = ";
+            SQLCommandTextMultiline2 += "'";
+            SQLCommandTextMultiline2 += SchoolName;
+            SQLCommandTextMultiline2 += "'";
+
 
             switch (s_Environment)
             {
@@ -843,7 +869,7 @@ namespace HuckeWEBAPI.Controllers
 
             using (SqlConnection CONN = new SqlConnection(connectionString))
             {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                using (SqlCommand cmd = new SqlCommand(SQLCommandTextMultiline2, CONN))
                 {
                     cmd.CommandType = CommandType.Text;
                     SqlDataAdapter da = new SqlDataAdapter();
@@ -859,6 +885,81 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.EmployeeName = row["EmployeeName"].ToString();
                         oEmployeeTable.Role = row["Role"].ToString();
                         oEmployeeTable.Certification = row["Certification"].ToString();
+                        oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
+
+
+                        lstEmployeeTableData.Add(oEmployeeTable);
+                        oEmployeeTable = null;
+                    }
+                }
+            }
+
+            return lstEmployeeTableData;
+        }
+        */
+        [Route("api/Crosswalk/fetchEmployeeDataBySchoolName/{SchoolName}")]
+        [HttpGet]
+        public List<EmployeeTable> fetchEmployeeDataBySchoolName(string SchoolName)
+        {
+            EmployeeTable oEmployeeTable;
+            List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            var SQLCommandTextNew = @"SELECT a.EmployeeID,a.SchoolName,a.EmployeeName,a.Certification,a.Role,b.CRecordID,
+                                CrossWalked = CASE
+		                        WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                FROM EmployeeTable a 
+	                            LEFT JOIN CrossWalk b on a.EmployeeID = b.EmployeeID WHERE a.SchoolName = @SchoolName";
+
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += SchoolName;
+                    SQLCommandText += "'";
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += SchoolName;
+                    SQLCommandText += "'";
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += SchoolName;
+                    SQLCommandText += "'";
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandTextNew, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oEmployeeTable = new EmployeeTable();
+                        oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
+                        oEmployeeTable.SchoolName = row["SchoolName"].ToString();
+
+                        oEmployeeTable.EmployeeName = row["EmployeeName"].ToString();
+                        oEmployeeTable.Role = row["Role"].ToString();
+                        oEmployeeTable.Certification = row["Certification"].ToString();
+                        oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
 
 
 
@@ -871,5 +972,103 @@ namespace HuckeWEBAPI.Controllers
             return lstEmployeeTableData;
         }
 
+
+
+        #region local_db_home
+        [HttpPost]
+        [Route("api/Crosswalk/AddEmployeesAllColumns")]
+        public void AddEmployeesAllColumns([FromBody] EmployeeTable oEmployeeTableItem)
+        {
+
+            var sqlStatement = "";
+            var connectionString = "";
+            var _SEARCH_STRING = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+            _SEARCH_STRING += "INSERT INTO EmployeeTable (EmployeeID,SchoolName,EmployeeName,Certification,Role) ";
+            _SEARCH_STRING += " VALUES ";
+            _SEARCH_STRING += "(";
+            _SEARCH_STRING += "'";
+            _SEARCH_STRING += oEmployeeTableItem.EmployeeID;
+            _SEARCH_STRING += "'";
+
+            _SEARCH_STRING += ",";
+
+
+            _SEARCH_STRING += "'";
+            _SEARCH_STRING += oEmployeeTableItem.SchoolName;
+            _SEARCH_STRING += "'";
+
+
+            _SEARCH_STRING += ",";
+
+
+            _SEARCH_STRING += "'";
+            _SEARCH_STRING += oEmployeeTableItem.EmployeeName;
+            _SEARCH_STRING += "'";
+
+
+            _SEARCH_STRING += ",";
+
+
+            _SEARCH_STRING += "'";
+            _SEARCH_STRING += oEmployeeTableItem.Certification;
+            _SEARCH_STRING += "'";
+
+
+            _SEARCH_STRING += ",";
+
+
+            _SEARCH_STRING += "'";
+            _SEARCH_STRING += oEmployeeTableItem.Role;
+            _SEARCH_STRING += "'";
+            _SEARCH_STRING += ")";
+
+            sqlStatement = _SEARCH_STRING;
+
+
+
+            // return;
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sqlStatement, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+
+                    CONN.Close();
+                }
+            }
+
+
+        }
+
+
+        #endregion local_db_home
+
+
     }
+
+
 }

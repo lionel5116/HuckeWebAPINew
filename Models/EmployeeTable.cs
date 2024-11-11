@@ -16,5 +16,7 @@ namespace HuckeWEBAPI.Models
 
         public string Role { get; set; }
 
+        public string CrossWalked { get; set; }
+
     }
 }
