@@ -18,5 +18,9 @@ namespace HuckeWEBAPI.Models
 
         public string CrossWalked { get; set; }
 
+        public string Position { get; set; }
+
+
+
     }
 }
