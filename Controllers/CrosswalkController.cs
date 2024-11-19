@@ -324,6 +324,104 @@ namespace HuckeWEBAPI.Controllers
             return lstPositionData;
         }
 
+        [Route("api/Crosswalk/fetchAllPositions/")]
+        [HttpGet]
+        public List<Positions> fetchAllPositions()
+        {
+            Positions oPositions;
+            List<Positions> lstPositionData = new List<Positions>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT p.Position from Positions p ORDER BY Position";
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT p.Position from Positions p ORDER BY Position";
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT p.Position from Positions p ORDER BY Position";
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oPositions = new Positions();
+                        oPositions.Position = row["Position"].ToString();
+                        lstPositionData.Add(oPositions);
+                        oPositions = null;
+                    }
+                }
+            }
+
+            return lstPositionData;
+        }
+
+        [Route("api/Crosswalk/AssignedPositions/")]
+        [HttpGet]
+        public List<Positions> AssignedPositions()
+        {
+            Positions oPositions;
+            List<Positions> lstPositionData = new List<Positions>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT p.Position from Positions p WHERE p.Position  IN (SELECT b.Position FROM CrossWalk b WHERE b.Position IS NOT NULL) ORDER BY Position";
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT p.Position from Positions p WHERE p.Position  IN (SELECT b.Position FROM CrossWalk b WHERE b.Position IS NOT NULL) ORDER BY Position";
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT p.Position from Positions p WHERE p.Position IN (SELECT b.Position FROM CrossWalk b WHERE b.Position IS NOT NULL) ORDER BY Position";
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oPositions = new Positions();
+                        oPositions.Position = row["Position"].ToString();
+                        lstPositionData.Add(oPositions);
+                        oPositions = null;
+                    }
+                }
+            }
+
+            return lstPositionData;
+        }
+
         [Route("api/Crosswalk/fetchCrosswalkEntries/")]
         [HttpGet]
         public List<CrosswalkData> fetchCrosswalkEntries()
@@ -907,7 +1005,7 @@ namespace HuckeWEBAPI.Controllers
             var connectionString = "";
             string SQLCommandText = "";
 
-            var SQLCommandTextNew = @"SELECT a.EmployeeID,a.SchoolName,a.EmployeeName,a.Certification,a.Role,b.CRecordID,b.Position,
+            var SQLCommandTextNew = @"SELECT a.EmployeeID,a.SchoolName,a.EmployeeName,a.Certification,a.Eligibility,a.Role,b.CRecordID,b.Position,
                                 CrossWalked = CASE
 		                        WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
                                 FROM EmployeeTable a 
@@ -962,6 +1060,85 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.Certification = row["Certification"].ToString();
                         oEmployeeTable.Position = row["Position"].ToString();
                         oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
+                        oEmployeeTable.Eligibility = row["Eligibility"].ToString();
+
+
+
+                        lstEmployeeTableData.Add(oEmployeeTable);
+                        oEmployeeTable = null;
+                    }
+                }
+            }
+
+            return lstEmployeeTableData;
+        }
+
+        [Route("api/Crosswalk/fetchAllEmployeeDataBySchoolName/{SchoolName}")]
+        [HttpGet]
+        public List<EmployeeTable> fetchAllEmployeeDataBySchoolName(string SchoolName)
+        {
+            EmployeeTable oEmployeeTable;
+            List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            var SQLCommandTextNew = @"SELECT a.EmployeeID,a.SchoolName,a.EmployeeName,a.Certification,a.Role,a.Eligibility,b.CRecordID,b.Position,
+                                CrossWalked = CASE
+		                        WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                FROM EmployeeTable a 
+	                            LEFT JOIN CrossWalk b on a.EmployeeID = b.EmployeeID
+								WHERE a.SchoolName = @SchoolName";
+
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += SchoolName;
+                    SQLCommandText += "'";
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += SchoolName;
+                    SQLCommandText += "'";
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += SchoolName;
+                    SQLCommandText += "'";
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandTextNew, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oEmployeeTable = new EmployeeTable();
+                        oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
+                        oEmployeeTable.SchoolName = row["SchoolName"].ToString();
+
+                        oEmployeeTable.EmployeeName = row["EmployeeName"].ToString();
+                        oEmployeeTable.Role = row["Role"].ToString();
+                        oEmployeeTable.Certification = row["Certification"].ToString();
+                        oEmployeeTable.Position = row["Position"].ToString();
+                        oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
+                        oEmployeeTable.Eligibility = row["Eligibility"].ToString();
 
 
 
