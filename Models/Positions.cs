@@ -8,5 +8,7 @@ namespace HuckeWEBAPI.Models
     public class Positions
     {
         public string Position { get; set; }
+        public string PositionNumber { get; set; }
+        
     }
 }
