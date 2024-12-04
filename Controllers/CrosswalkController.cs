@@ -115,37 +115,78 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     connectionString = s_ConnectionString_CrossWalk;
-                    //connectionString = _connStringDataWarehouse_EDB;
-                    /*
-                  SQLCommandText = @"SELECT  max(a.SchoolID) as  EducationOrgNaturalKey, 
-                                      a.[School Name]  as NameOfInstitution
-                                     FROM SchoolListing a
-                                     group by a.[School Name]
-                                     HAVING LEN(a.[School Name]) > 0
-                                     ORDER BY a.[School Name]";
-                  */
+                   
                     break;
                 case "DEV":
                     connectionString = s_ConnectionString_CrossWalk;
-                    /*
-                    SQLCommandText = @"SELECT  max(a.SchoolID) as  EducationOrgNaturalKey, 
-                                        a.[School Name]  as NameOfInstitution
-	                                   FROM SchoolListing a
-	                                   group by a.[School Name]
-	                                   HAVING LEN(a.[School Name]) > 0
-                                       ORDER BY a.[School Name]";
-                    */
+                  
                     break;
                 default:
                     connectionString = s_ConnectionString_CrossWalk;
-                    /*
-                  SQLCommandText = @"SELECT  max(a.SchoolID) as  EducationOrgNaturalKey, 
-                                      a.[School Name]  as NameOfInstitution
-                                     FROM SchoolListing a
-                                     group by a.[School Name]
-                                     HAVING LEN(a.[School Name]) > 0
-                                     ORDER BY a.[School Name]";
-                  */
+  
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oSchoolLisingData = new SchoolListing();
+
+                        if (row["Org_Unit_Name"] != null && row["Org_Unit"].ToString() != "")
+                        {
+                            oSchoolLisingData.EducationOrgNaturalKey = row["Org_Unit"].ToString();
+                        }
+                        else
+                        {
+                            oSchoolLisingData.EducationOrgNaturalKey = "N/A";
+                        }
+
+
+                        oSchoolLisingData.NameOfInstitution = row["Org_Unit_Name"].ToString();
+                        lstSchoolistingData.Add(oSchoolLisingData);
+                        oSchoolLisingData = null;
+                    }
+                }
+            }
+
+            return lstSchoolistingData;
+        }
+
+        [Route("api/Crosswalk/fetchSchoolListingsRealData/")]
+        [HttpGet]
+        public List<SchoolListing> fetchSchoolListingsRealData()
+        {
+            SchoolListing oSchoolLisingData;
+            List<SchoolListing> lstSchoolistingData = new List<SchoolListing>();
+
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            SQLCommandText = $"SELECT DISTINCT([Org_Unit_Name]),Org_Unit FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT WHERE  LEN([Org_Unit_Name]) > 2 AND NES = 'NES'";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
                     break;
             }
 
@@ -576,6 +617,79 @@ namespace HuckeWEBAPI.Controllers
             }
 
             return lstPositionData;
+        }
+
+        [Route("api/Crosswalk/fetchAPRData/{SchoolName}")]
+        [HttpGet]
+        public List<APRReport> fetchAPRData(string SchoolName)
+        {
+            APRReport oAPRReport;
+            List<APRReport> lstAPRReportData = new List<APRReport>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+            SQLCommandText = @"SELECT [NES],
+                              [Employee],
+                              [Employee_Name],
+                              [Division],
+                             [Unit],
+                             [Org_Unit_Name],
+                              [Position],
+                              [Position_Name],
+                              [Job],
+                              [Job_Name],
+                              [Status]
+                          FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT]
+                          WHERE Org_Unit_Name = @SchoolName";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oAPRReport = new APRReport();
+                        oAPRReport.NES = row["NES"].ToString();
+                        oAPRReport.Employee = row["Employee"].ToString();
+                        oAPRReport.Employee_Name = row["Employee_Name"].ToString();
+                        oAPRReport.Division = row["Division"].ToString();
+                        oAPRReport.Unit = row["Unit"].ToString();
+                        oAPRReport.Org_Unit_Name = row["Org_Unit_Name"].ToString();
+                        oAPRReport.Position = row["Position"].ToString();
+                        oAPRReport.Position_Name = row["Position_Name"].ToString();
+                        oAPRReport.Job = row["Job"].ToString();
+                        oAPRReport.Job_Name = row["Job_Name"].ToString();
+                        oAPRReport.Status = row["Status"].ToString();
+                        lstAPRReportData.Add(oAPRReport);
+                        oAPRReport = null;
+                    }
+                }
+            }
+
+            return lstAPRReportData;
         }
 
         [Route("api/Crosswalk/AssignedPositions/")]
