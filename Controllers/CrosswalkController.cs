@@ -20,44 +20,78 @@ namespace HuckeWEBAPI.Controllers
         public string _connStringDataWarehouse_EDB = ConfigurationManager.AppSettings["_DataWarehouseEDB"].ToString();
         public string s_Environment = ConfigurationManager.AppSettings["Environment"].ToString();
 
-        [Route("api/Crosswalk/fetchSchoolListings/")]
-        [HttpGet]
-        public List<SchoolListing> fetchSchoolListings()
+      
+
+       
+
+        public static DataSet GetDataSetCommon(string sql, string s_Provider, string s_ConnString)
+
         {
-            SchoolListing oSchoolLisingData;
-            List<SchoolListing> lstSchoolistingData = new List<SchoolListing>();
+            try
+
+            {
+                DbProviderFactory factory = DbProviderFactories.GetFactory(s_Provider);
+                using (IDbConnection cn = factory.CreateConnection())
+                {
+                    cn.ConnectionString = s_ConnString;
+                    cn.Open();
+                    IDbDataAdapter da = factory.CreateDataAdapter();
+                    da.SelectCommand = cn.CreateCommand();
+                    da.SelectCommand.CommandText = sql;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+                        cn.Close();
+                        return ds;
+                    }
+                    else
+                    {
+                        cn.Close();
+                        return null;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("Error in retrieving data " + e.Message);
+                return null;
+            }
+
+        }
+
+
+        #region UsingRealDataSchema
+        /*PULLING FROM NEW SCHEMA - REAL DATA */
+        [Route("api/Crosswalk/fetchAllPositionsBySchoolName/{SchoolName}")]
+        [HttpGet]
+        public List<Positions> fetchAllPositionsBySchoolName(string SchoolName)
+        {
+            Positions oPositions;
+            List<Positions> lstPositionData = new List<Positions>();
 
             var connectionString = "";
             string SQLCommandText = "";
+            SQLCommandText = @"SELECT distinct Position as PositionNumber,[Position_Name] as Position FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT
+                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
+                              AND
+                              [Org_Unit_Name] =  @SchoolName
+                              order by
+                              [Position]";
 
             switch (s_Environment)
             {
                 case "PROD":
-                    connectionString = _connStringDataWarehouse_EDB;
-                    SQLCommandText = @"SELECT  max(a.EducationOrgNaturalKey)  EducationOrgNaturalKey, 
-                                        a.NameOfInstitution 
-	                                    FROM [EDB].[EXT].EducationOrganization a
-	                                    group by a.NameOfInstitution
-	                                    HAVING LEN(a.NameOfInstitution) > 2 AND max(OrgGrpNaturalKey) = 'Campus' 
-                                        ORDER BY a.NameOfInstitution";
+                    connectionString = s_ConnectionString_CrossWalk;
+      
                     break;
                 case "DEV":
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT  max(a.SchoolID) as  EducationOrgNaturalKey, 
-                                        a.[School Name]  as NameOfInstitution
-	                                   FROM SchoolListing a
-	                                   group by a.[School Name]
-	                                   HAVING LEN(a.[School Name]) > 0
-                                       ORDER BY a.[School Name]";
+               
                     break;
                 default:
                     connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT  max(a.SchoolID) as  EducationOrgNaturalKey, 
-                                        a.[School Name]  as NameOfInstitution
-	                                   FROM SchoolListing a
-	                                   group by a.[School Name]
-	                                   HAVING LEN(a.[School Name]) > 0
-                                       ORDER BY a.[School Name]";
+             
                     break;
             }
 
@@ -68,62 +102,56 @@ namespace HuckeWEBAPI.Controllers
                 {
                     cmd.CommandType = CommandType.Text;
                     SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
                     da.SelectCommand = cmd;
                     DataSet ds = new DataSet();
                     da.Fill(ds);
                     foreach (DataRow row in ds.Tables[0].Rows)
                     {
-                        oSchoolLisingData = new SchoolListing();
-
-                        if (row["EducationOrgNaturalKey"] != null && row["EducationOrgNaturalKey"].ToString() != "")
-                        {
-                            oSchoolLisingData.EducationOrgNaturalKey = row["EducationOrgNaturalKey"].ToString();
-                        }
-                        else
-                        {
-                            oSchoolLisingData.EducationOrgNaturalKey = "N/A";
-                        }
-
-
-                        oSchoolLisingData.NameOfInstitution = row["NameOfInstitution"].ToString();
-                        lstSchoolistingData.Add(oSchoolLisingData);
-                        oSchoolLisingData = null;
+                        oPositions = new Positions();
+                        oPositions.Position = row["Position"].ToString();
+                        oPositions.PositionNumber = row["PositionNumber"].ToString();
+                        lstPositionData.Add(oPositions);
+                        oPositions = null;
                     }
                 }
             }
 
-            return lstSchoolistingData;
+            return lstPositionData;
         }
-        
-        
-        [Route("api/Crosswalk/fetchSchoolListingsFilteredByDivAndUnit/{area}")]
-        [HttpGet]
-        public List<SchoolListing> fetchSchoolListingsFilteredByDivAndUnit(string area)
-        {
-            SchoolListing oSchoolLisingData;
-            List<SchoolListing> lstSchoolistingData = new List<SchoolListing>();
 
-            string Division = "'" + area.Split('|')[0].ToString() + "'";
-            string Unit = "'" + area.Split('|')[1].ToString() + "'";
+        /*PULLING FROM NEW SCHEMA - REAL DATA */
+        [Route("api/Crosswalk/fetchUnassignedPositions/{SchoolName}")]
+        [HttpGet]
+        public List<Positions> fetchUnassignedPositions(string SchoolName)
+        {
+            Positions oPositions;
+            List<Positions> lstPositionData = new List<Positions>();
 
             var connectionString = "";
             string SQLCommandText = "";
-
-            SQLCommandText = $"SELECT DISTINCT([Org_Unit_Name]),Org_Unit FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT WHERE [Division] = {Division} AND Unit = {Unit}  AND LEN([Org_Unit_Name]) > 2 AND NES = 'NES'";
+            SQLCommandText = @"SELECT distinct Position as PositionNumber,[Position_Name] as Position FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT
+                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
+                              AND
+                              [Org_Unit_Name] = @SchoolName
+							  AND
+							  Position NOT IN (SELECT b.Position FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                              order by
+                              [Position]";
 
             switch (s_Environment)
             {
                 case "PROD":
                     connectionString = s_ConnectionString_CrossWalk;
-                   
+
                     break;
                 case "DEV":
                     connectionString = s_ConnectionString_CrossWalk;
-                  
+
                     break;
                 default:
                     connectionString = s_ConnectionString_CrossWalk;
-  
+
                     break;
             }
 
@@ -134,33 +162,99 @@ namespace HuckeWEBAPI.Controllers
                 {
                     cmd.CommandType = CommandType.Text;
                     SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
                     da.SelectCommand = cmd;
                     DataSet ds = new DataSet();
                     da.Fill(ds);
                     foreach (DataRow row in ds.Tables[0].Rows)
                     {
-                        oSchoolLisingData = new SchoolListing();
-
-                        if (row["Org_Unit_Name"] != null && row["Org_Unit"].ToString() != "")
-                        {
-                            oSchoolLisingData.EducationOrgNaturalKey = row["Org_Unit"].ToString();
-                        }
-                        else
-                        {
-                            oSchoolLisingData.EducationOrgNaturalKey = "N/A";
-                        }
-
-
-                        oSchoolLisingData.NameOfInstitution = row["Org_Unit_Name"].ToString();
-                        lstSchoolistingData.Add(oSchoolLisingData);
-                        oSchoolLisingData = null;
+                        oPositions = new Positions();
+                        oPositions.Position = row["Position"].ToString();
+                        oPositions.PositionNumber = row["PositionNumber"].ToString();
+                        lstPositionData.Add(oPositions);
+                        oPositions = null;
                     }
                 }
             }
 
-            return lstSchoolistingData;
+            return lstPositionData;
         }
 
+        /*PULLING FROM NEW SCHEMA - REAL DATA */
+        [Route("api/Crosswalk/fetchAPRData/{SchoolName}")]
+        [HttpGet]
+        public List<APRReport> fetchAPRData(string SchoolName)
+        {
+            APRReport oAPRReport;
+            List<APRReport> lstAPRReportData = new List<APRReport>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+            SQLCommandText = @"SELECT [NES],
+                              [Employee],
+                              [Employee_Name],
+                              [Division],
+                             [Unit],
+                             [Org_Unit_Name],
+                              [Position],
+                              [Position_Name],
+                              [Job],
+                              [Job_Name],
+                              [Status]
+                          FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT]
+                          WHERE Org_Unit_Name = @SchoolName";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oAPRReport = new APRReport();
+                        oAPRReport.NES = row["NES"].ToString();
+                        oAPRReport.Employee = row["Employee"].ToString();
+                        oAPRReport.Employee_Name = row["Employee_Name"].ToString();
+                        oAPRReport.Division = row["Division"].ToString();
+                        oAPRReport.Unit = row["Unit"].ToString();
+                        oAPRReport.Org_Unit_Name = row["Org_Unit_Name"].ToString();
+                        oAPRReport.Position = row["Position"].ToString();
+                        oAPRReport.Position_Name = row["Position_Name"].ToString();
+                        oAPRReport.Job = row["Job"].ToString();
+                        oAPRReport.Job_Name = row["Job_Name"].ToString();
+                        oAPRReport.Status = row["Status"].ToString();
+                        lstAPRReportData.Add(oAPRReport);
+                        oAPRReport = null;
+                    }
+                }
+            }
+
+            return lstAPRReportData;
+        }
+
+        /*PULLING FROM NEW SCHEMA - REAL DATA */
         [Route("api/Crosswalk/fetchSchoolListingsRealData/")]
         [HttpGet]
         public List<SchoolListing> fetchSchoolListingsRealData()
@@ -224,42 +318,244 @@ namespace HuckeWEBAPI.Controllers
             return lstSchoolistingData;
         }
 
-        public static DataSet GetDataSetCommon(string sql, string s_Provider, string s_ConnString)
-
+        /*PULLING FROM NEW SCHEMA - REAL DATA */
+        [Route("api/Crosswalk/fetchSchoolListingsFilteredByDivAndUnit/{area}")]
+        [HttpGet]
+        public List<SchoolListing> fetchSchoolListingsFilteredByDivAndUnit(string area)
         {
-            try
+            SchoolListing oSchoolLisingData;
+            List<SchoolListing> lstSchoolistingData = new List<SchoolListing>();
 
+            string Division = "'" + area.Split('|')[0].ToString() + "'";
+            string Unit = "'" + area.Split('|')[1].ToString() + "'";
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            SQLCommandText = $"SELECT DISTINCT([Org_Unit_Name]),Org_Unit FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT WHERE [Division] = {Division} AND Unit = {Unit}  AND LEN([Org_Unit_Name]) > 2 AND NES = 'NES'";
+
+            switch (s_Environment)
             {
-                DbProviderFactory factory = DbProviderFactories.GetFactory(s_Provider);
-                using (IDbConnection cn = factory.CreateConnection())
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
                 {
-                    cn.ConnectionString = s_ConnString;
-                    cn.Open();
-                    IDbDataAdapter da = factory.CreateDataAdapter();
-                    da.SelectCommand = cn.CreateCommand();
-                    da.SelectCommand.CommandText = sql;
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
                     DataSet ds = new DataSet();
                     da.Fill(ds);
-                    if (ds.Tables[0].Rows.Count > 0)
+                    foreach (DataRow row in ds.Tables[0].Rows)
                     {
-                        cn.Close();
-                        return ds;
-                    }
-                    else
-                    {
-                        cn.Close();
-                        return null;
+                        oSchoolLisingData = new SchoolListing();
+
+                        if (row["Org_Unit_Name"] != null && row["Org_Unit"].ToString() != "")
+                        {
+                            oSchoolLisingData.EducationOrgNaturalKey = row["Org_Unit"].ToString();
+                        }
+                        else
+                        {
+                            oSchoolLisingData.EducationOrgNaturalKey = "N/A";
+                        }
+
+
+                        oSchoolLisingData.NameOfInstitution = row["Org_Unit_Name"].ToString();
+                        lstSchoolistingData.Add(oSchoolLisingData);
+                        oSchoolLisingData = null;
                     }
                 }
             }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine("Error in retrieving data " + e.Message);
-                return null;
-            }
 
+            return lstSchoolistingData;
         }
 
+
+        /*PULLING FROM NEW SCHEMA - REAL DATA */
+        [Route("api/Crosswalk/fetchCERTData/{employeeID}")]
+        [HttpGet]
+        public List<CertificationData> fetchCERTData(string employeeID)
+        {
+            CertificationData oCERTData;
+            List<CertificationData> lstCERTData = new List<CertificationData>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+            SQLCommandText = @"select [Employee], [Employee Text] as EmployeeName,[Qualification Text] As Certification from YPBI_HPA_ZEMPQUAL_CERT_TABLE
+	                            WHERE [Employee] = @employeeID";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@employeeID", employeeID);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCERTData = new CertificationData();
+                        oCERTData.Employee = row["Employee"].ToString();
+                        oCERTData.EmployeeName = row["EmployeeName"].ToString();
+                        oCERTData.Certification = row["Certification"].ToString();
+
+                        lstCERTData.Add(oCERTData);
+                        oCERTData = null;
+                    }
+                }
+            }
+
+            return lstCERTData;
+        }
+
+        /*PULLING FROM NEW SCHEMA - REAL DATA */
+        [Route("api/Crosswalk/fetchAllEmployeeDataBySchoolName/{SchoolName}")]
+        [HttpGet]
+        public List<EmployeeTable> fetchAllEmployeeDataBySchoolName(string SchoolName)
+        {
+            EmployeeTable oEmployeeTable;
+            List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            /*
+            var SQLCommandTextNew = @"SELECT a.EmployeeID,a.SchoolName,a.EmployeeName,a.Certification,a.Role,a.Eligibility,b.CRecordID,b.Position,
+                                CrossWalked = CASE
+		                        WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                FROM EmployeeTable a 
+	                            LEFT JOIN CrossWalk b on a.EmployeeID = b.EmployeeID
+								WHERE a.SchoolName = @SchoolName";
+            */
+
+            /*
+            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
+                                   a.Org_Unit_Name as SchoolName,
+	                               a.Employee_Name as EmployeeName,
+	                               a.Position_Name as [Role],
+                                   '' as Certification,
+	                               '' as Eligibility,
+	                               b.CRecordID,b.Position,
+	                                CrossWalked = CASE
+		                            WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                    FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a 
+	                                LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+		                            WHERE a.Org_Unit_Name = @SchoolName";
+            */
+            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
+                                   a.Org_Unit_Name as SchoolName,
+	                               a.Employee_Name as EmployeeName,
+	                               a.Position_Name as [Role],
+	                               '' as Eligibility,
+	                               c.[Qualification Text] As Certification,
+	                                b.CRecordID,b.Position,
+	                                CrossWalked = CASE
+		                            WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                    FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a 
+	                                LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+		                            LEFT JOIN 
+		                            (SELECT [Employee],min([Qualification Text]) as [Qualification Text]  FROM YPBI_HPA_ZEMPQUAL_CERT_TABLE
+		                             GROUP BY [Employee]
+		                            ) c on a.Employee = c.Employee
+		                            --YPBI_HPA_ZEMPQUAL_CERT_TABLE c on a.Employee = c.Employee
+		                            WHERE a.Org_Unit_Name = @SchoolName";
+
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += SchoolName;
+                    SQLCommandText += "'";
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += SchoolName;
+                    SQLCommandText += "'";
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
+                    SQLCommandText += "'";
+                    SQLCommandText += SchoolName;
+                    SQLCommandText += "'";
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandTextNew, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oEmployeeTable = new EmployeeTable();
+                        oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
+                        oEmployeeTable.SchoolName = row["SchoolName"].ToString();
+
+                        oEmployeeTable.EmployeeName = row["EmployeeName"].ToString();
+                        oEmployeeTable.Role = row["Role"].ToString();
+                        oEmployeeTable.Certification = row["Certification"].ToString();
+                        oEmployeeTable.Position = row["Position"].ToString();
+                        oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
+                        oEmployeeTable.Eligibility = row["Eligibility"].ToString();
+
+
+
+                        lstEmployeeTableData.Add(oEmployeeTable);
+                        oEmployeeTable = null;
+                    }
+                }
+            }
+
+            return lstEmployeeTableData;
+        }
+
+
+        /*FROM ORIGINAL CODE BUT STILL GOOD TO USE */
         [HttpPost]
         [Route("api/Crosswalk/AddOrUpdateCrosswalkRecord")]
         public bool AddOrUpdateCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
@@ -344,15 +640,81 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
-
+        /*FROM ORIGINAL CODE BUT STILL GOOD TO USE */
         [HttpPost]
-        [Route("api/Crosswalk/AddPositions")]
-        public void AddPositions([FromBody] Positions oPositionDDItem)
+        [Route("api/Crosswalk/UpdateCrosswalkRecord")]
+        public bool UpdateCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
         {
+            bool bSuccess = false;
 
-            var sqlStatement = "";
+
             var connectionString = "";
-            var _SEARCH_STRING = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    //use local as the same for connection string while in test
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+
+            const string sql2 = @"UPDATE CrossWalk SET 
+                                       Position = @Position ,
+                                       DateAdded = @DateAdded 
+                                       WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName";
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@EmployeeID", oCrosswalkEntryData.EmployeeID);
+                    cmd.Parameters.AddWithValue("@Position", oCrosswalkEntryData.Position);
+                    cmd.Parameters.AddWithValue("@SchoolName", oCrosswalkEntryData.SchoolName);
+                    cmd.Parameters.AddWithValue("@DateAdded", DateTime.Today);
+
+
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+
+            return bSuccess;
+        }
+
+        /*FROM ORIGINAL CODE BUT STILL GOOD TO USE */
+        [HttpPost]
+        [Route("api/Crosswalk/DeleteCrosswalkRecord")]
+        public bool DeleteCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
+        {
+            bool bSuccess = false;
+
+
+            var connectionString = "";
 
             switch (s_Environment)
             {
@@ -370,37 +732,134 @@ namespace HuckeWEBAPI.Controllers
                     break;
             }
 
-            _SEARCH_STRING += "INSERT INTO Positions (Position) ";
-            _SEARCH_STRING += " VALUES ";
-            _SEARCH_STRING += "(";
-            _SEARCH_STRING += "'";
-            _SEARCH_STRING += oPositionDDItem.Position;
-            _SEARCH_STRING += "'";
-            _SEARCH_STRING += ")";
+            string SQLCommandText = "";
+            SQLCommandText = @"DELETE CrossWalk ";
+            SQLCommandText += "WHERE SchoolName = ";
+            SQLCommandText += "'";
+            SQLCommandText += oCrosswalkEntryData.SchoolName;
+            SQLCommandText += "'";
+            SQLCommandText += " AND ";
+            SQLCommandText += "Position = ";
+            SQLCommandText += "'";
+            SQLCommandText += oCrosswalkEntryData.Position;
+            SQLCommandText += "'";
+            SQLCommandText += " AND ";
+            SQLCommandText += "EmployeeID = ";
+            SQLCommandText += "'";
+            SQLCommandText += oCrosswalkEntryData.EmployeeID;
+            SQLCommandText += "'";
 
-            sqlStatement = _SEARCH_STRING;
-
-           
-
-            // return;
 
             using (SqlConnection CONN = new SqlConnection(connectionString))
             {
-                using (SqlCommand cmd = new SqlCommand(sqlStatement, CONN))
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
                 {
                     cmd.CommandType = CommandType.Text;
                     SqlDataAdapter da = new SqlDataAdapter();
-
                     da.SelectCommand = cmd;
 
                     CONN.Open();
                     int nRecsAffected = cmd.ExecuteNonQuery();
-
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
                     CONN.Close();
+
+
                 }
             }
 
+            return bSuccess;
+        }
 
+
+  
+
+
+        #endregion UsingRealDataSchema
+
+
+
+
+        #region OriginalFakeData
+        [Route("api/Crosswalk/fetchSchoolListings/")]
+        [HttpGet]
+        public List<SchoolListing> fetchSchoolListings()
+        {
+            SchoolListing oSchoolLisingData;
+            List<SchoolListing> lstSchoolistingData = new List<SchoolListing>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = _connStringDataWarehouse_EDB;
+                    SQLCommandText = @"SELECT  max(a.EducationOrgNaturalKey)  EducationOrgNaturalKey, 
+                                        a.NameOfInstitution 
+	                                    FROM [EDB].[EXT].EducationOrganization a
+	                                    group by a.NameOfInstitution
+	                                    HAVING LEN(a.NameOfInstitution) > 2 AND max(OrgGrpNaturalKey) = 'Campus' 
+                                        ORDER BY a.NameOfInstitution";
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT  max(a.SchoolID) as  EducationOrgNaturalKey, 
+                                        a.[School Name]  as NameOfInstitution
+	                                   FROM SchoolListing a
+	                                   group by a.[School Name]
+	                                   HAVING LEN(a.[School Name]) > 0
+                                       ORDER BY a.[School Name]";
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                    SQLCommandText = @"SELECT  max(a.SchoolID) as  EducationOrgNaturalKey, 
+                                        a.[School Name]  as NameOfInstitution
+	                                   FROM SchoolListing a
+	                                   group by a.[School Name]
+	                                   HAVING LEN(a.[School Name]) > 0
+                                       ORDER BY a.[School Name]";
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oSchoolLisingData = new SchoolListing();
+
+                        if (row["EducationOrgNaturalKey"] != null && row["EducationOrgNaturalKey"].ToString() != "")
+                        {
+                            oSchoolLisingData.EducationOrgNaturalKey = row["EducationOrgNaturalKey"].ToString();
+                        }
+                        else
+                        {
+                            oSchoolLisingData.EducationOrgNaturalKey = "N/A";
+                        }
+
+
+                        oSchoolLisingData.NameOfInstitution = row["NameOfInstitution"].ToString();
+                        lstSchoolistingData.Add(oSchoolLisingData);
+                        oSchoolLisingData = null;
+                    }
+                }
+            }
+
+            return lstSchoolistingData;
         }
 
         [Route("api/Crosswalk/fetchPositions/")]
@@ -452,6 +911,7 @@ namespace HuckeWEBAPI.Controllers
             return lstPositionData;
         }
 
+
         [Route("api/Crosswalk/fetchAllPositions/")]
         [HttpGet]
         public List<Positions> fetchAllPositions()
@@ -500,196 +960,6 @@ namespace HuckeWEBAPI.Controllers
             }
 
             return lstPositionData;
-        }
-
-        [Route("api/Crosswalk/fetchAllPositionsBySchoolName/{SchoolName}")]
-        [HttpGet]
-        public List<Positions> fetchAllPositionsBySchoolName(string SchoolName)
-        {
-            Positions oPositions;
-            List<Positions> lstPositionData = new List<Positions>();
-
-            var connectionString = "";
-            string SQLCommandText = "";
-            SQLCommandText = @"SELECT distinct Position as PositionNumber,[Position_Name] as Position FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT
-                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
-                              AND
-                              [Org_Unit_Name] =  @SchoolName
-                              order by
-                              [Position]";
-
-            switch (s_Environment)
-            {
-                case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk;
-      
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk;
-               
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk;
-             
-                    break;
-            }
-
-
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    foreach (DataRow row in ds.Tables[0].Rows)
-                    {
-                        oPositions = new Positions();
-                        oPositions.Position = row["Position"].ToString();
-                        oPositions.PositionNumber = row["PositionNumber"].ToString();
-                        lstPositionData.Add(oPositions);
-                        oPositions = null;
-                    }
-                }
-            }
-
-            return lstPositionData;
-        }
-
-
-        [Route("api/Crosswalk/fetchUnassignedPositions/{SchoolName}")]
-        [HttpGet]
-        public List<Positions> fetchUnassignedPositions(string SchoolName)
-        {
-            Positions oPositions;
-            List<Positions> lstPositionData = new List<Positions>();
-
-            var connectionString = "";
-            string SQLCommandText = "";
-            SQLCommandText = @"SELECT distinct Position as PositionNumber,[Position_Name] as Position FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT
-                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
-                              AND
-                              [Org_Unit_Name] = @SchoolName
-							  AND
-							  Position NOT IN (SELECT b.Position FROM CrossWalk b WHERE b.Position IS NOT NULL)
-                              order by
-                              [Position]";
-
-            switch (s_Environment)
-            {
-                case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-            }
-
-
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    foreach (DataRow row in ds.Tables[0].Rows)
-                    {
-                        oPositions = new Positions();
-                        oPositions.Position = row["Position"].ToString();
-                        oPositions.PositionNumber = row["PositionNumber"].ToString();
-                        lstPositionData.Add(oPositions);
-                        oPositions = null;
-                    }
-                }
-            }
-
-            return lstPositionData;
-        }
-
-        [Route("api/Crosswalk/fetchAPRData/{SchoolName}")]
-        [HttpGet]
-        public List<APRReport> fetchAPRData(string SchoolName)
-        {
-            APRReport oAPRReport;
-            List<APRReport> lstAPRReportData = new List<APRReport>();
-
-            var connectionString = "";
-            string SQLCommandText = "";
-            SQLCommandText = @"SELECT [NES],
-                              [Employee],
-                              [Employee_Name],
-                              [Division],
-                             [Unit],
-                             [Org_Unit_Name],
-                              [Position],
-                              [Position_Name],
-                              [Job],
-                              [Job_Name],
-                              [Status]
-                          FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT]
-                          WHERE Org_Unit_Name = @SchoolName";
-
-            switch (s_Environment)
-            {
-                case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-            }
-
-
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    foreach (DataRow row in ds.Tables[0].Rows)
-                    {
-                        oAPRReport = new APRReport();
-                        oAPRReport.NES = row["NES"].ToString();
-                        oAPRReport.Employee = row["Employee"].ToString();
-                        oAPRReport.Employee_Name = row["Employee_Name"].ToString();
-                        oAPRReport.Division = row["Division"].ToString();
-                        oAPRReport.Unit = row["Unit"].ToString();
-                        oAPRReport.Org_Unit_Name = row["Org_Unit_Name"].ToString();
-                        oAPRReport.Position = row["Position"].ToString();
-                        oAPRReport.Position_Name = row["Position_Name"].ToString();
-                        oAPRReport.Job = row["Job"].ToString();
-                        oAPRReport.Job_Name = row["Job_Name"].ToString();
-                        oAPRReport.Status = row["Status"].ToString();
-                        lstAPRReportData.Add(oAPRReport);
-                        oAPRReport = null;
-                    }
-                }
-            }
-
-            return lstAPRReportData;
         }
 
         [Route("api/Crosswalk/AssignedPositions/")]
@@ -847,76 +1117,6 @@ namespace HuckeWEBAPI.Controllers
             }
 
             return lstCrosswalkData;
-        }
-
-        [HttpPost]
-        [Route("api/Crosswalk/DeleteCrosswalkRecord")]
-        public bool DeleteCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
-        {
-            bool bSuccess = false;
-
-
-            var connectionString = "";
-
-            switch (s_Environment)
-            {
-                case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
-
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
-
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
-
-                    break;
-            }
-
-            string SQLCommandText = "";
-            SQLCommandText = @"DELETE CrossWalk ";
-            SQLCommandText += "WHERE SchoolName = ";
-            SQLCommandText += "'";
-            SQLCommandText += oCrosswalkEntryData.SchoolName;
-            SQLCommandText += "'";
-            SQLCommandText += " AND ";
-            SQLCommandText += "Position = ";
-            SQLCommandText += "'";
-            SQLCommandText += oCrosswalkEntryData.Position;
-            SQLCommandText += "'";
-            SQLCommandText += " AND ";
-            SQLCommandText += "EmployeeID = ";
-            SQLCommandText += "'";
-            SQLCommandText += oCrosswalkEntryData.EmployeeID;
-            SQLCommandText += "'";
-
-
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    da.SelectCommand = cmd;
-
-                    CONN.Open();
-                    int nRecsAffected = cmd.ExecuteNonQuery();
-                    if (nRecsAffected > 0)
-                    {
-                        bSuccess = true;
-                    }
-                    else
-                    {
-                        bSuccess = false;
-                    }
-                    CONN.Close();
-
-
-                }
-            }
-
-            return bSuccess;
         }
         
         [Route("api/Crosswalk/fetchCrosswalkEntriesAllParameters")]
@@ -1392,162 +1592,12 @@ namespace HuckeWEBAPI.Controllers
             return lstEmployeeTableData;
         }
 
-        [Route("api/Crosswalk/fetchAllEmployeeDataBySchoolName/{SchoolName}")]
-        [HttpGet]
-        public List<EmployeeTable> fetchAllEmployeeDataBySchoolName(string SchoolName)
-        {
-            EmployeeTable oEmployeeTable;
-            List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
+       
 
-            var connectionString = "";
-            string SQLCommandText = "";
+       
 
-            /*
-            var SQLCommandTextNew = @"SELECT a.EmployeeID,a.SchoolName,a.EmployeeName,a.Certification,a.Role,a.Eligibility,b.CRecordID,b.Position,
-                                CrossWalked = CASE
-		                        WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-                                FROM EmployeeTable a 
-	                            LEFT JOIN CrossWalk b on a.EmployeeID = b.EmployeeID
-								WHERE a.SchoolName = @SchoolName";
-            */
-            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
-                                   a.Org_Unit_Name as SchoolName,
-	                               a.Employee_Name as EmployeeName,
-	                               a.Position_Name as [Role],
-                                   '' as Certification,
-	                               '' as Eligibility,
-	                               b.CRecordID,b.Position,
-	                                CrossWalked = CASE
-		                            WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-                                    FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a 
-	                                LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
-		                            WHERE a.Org_Unit_Name = @SchoolName";
+        #endregion OriginalFakeData
 
-            switch (s_Environment)
-            {
-                case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
-                    SQLCommandText += "'";
-                    SQLCommandText += SchoolName;
-                    SQLCommandText += "'";
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
-                    SQLCommandText += "'";
-                    SQLCommandText += SchoolName;
-                    SQLCommandText += "'";
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
-                    SQLCommandText += "'";
-                    SQLCommandText += SchoolName;
-                    SQLCommandText += "'";
-                    break;
-            }
-
-
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandTextNew, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    foreach (DataRow row in ds.Tables[0].Rows)
-                    {
-                        oEmployeeTable = new EmployeeTable();
-                        oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
-                        oEmployeeTable.SchoolName = row["SchoolName"].ToString();
-
-                        oEmployeeTable.EmployeeName = row["EmployeeName"].ToString();
-                        oEmployeeTable.Role = row["Role"].ToString();
-                        oEmployeeTable.Certification = row["Certification"].ToString();
-                        oEmployeeTable.Position = row["Position"].ToString();
-                        oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
-                        oEmployeeTable.Eligibility = row["Eligibility"].ToString();
-
-
-
-                        lstEmployeeTableData.Add(oEmployeeTable);
-                        oEmployeeTable = null;
-                    }
-                }
-            }
-
-            return lstEmployeeTableData;
-        }
-
-
-        [HttpPost]
-        [Route("api/Crosswalk/UpdateCrosswalkRecord")]
-        public bool UpdateCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
-        {
-            bool bSuccess = false;
-
-
-            var connectionString = "";
-
-            switch (s_Environment)
-            {
-                case "PROD":
-                    //use local as the same for connection string while in test
-                    connectionString = s_ConnectionString_CrossWalk_Local;
-
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
-
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
-
-                    break;
-            }
-
-          
-            const string sql2 = @"UPDATE CrossWalk SET 
-                                       Position = @Position ,
-                                       DateAdded = @DateAdded 
-                                       WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName";
-
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    cmd.Parameters.AddWithValue("@EmployeeID", oCrosswalkEntryData.EmployeeID);
-                    cmd.Parameters.AddWithValue("@Position", oCrosswalkEntryData.Position);
-                    cmd.Parameters.AddWithValue("@SchoolName", oCrosswalkEntryData.SchoolName);
-                    cmd.Parameters.AddWithValue("@DateAdded", DateTime.Today);
-
-
-                    da.SelectCommand = cmd;
-
-                    CONN.Open();
-                    int nRecsAffected = cmd.ExecuteNonQuery();
-                    if (nRecsAffected > 0)
-                    {
-                        bSuccess = true;
-                    }
-                    else
-                    {
-                        bSuccess = false;
-                    }
-                    CONN.Close();
-
-
-                }
-            }
-
-            return bSuccess;
-        }
 
         #region local_db_home
         [HttpPost]
