@@ -21,8 +21,10 @@ namespace HuckeWEBAPI.Models
         public string Position { get; set; }
 
         public string Eligibility { get; set; }
-        
 
+        public int PositionID { get; set; }
+
+        public string PositionName { get; set; }
 
     }
 }

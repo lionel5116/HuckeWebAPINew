@@ -8,9 +8,14 @@ namespace HuckeWEBAPI.Models
     public class CrosswalkData
     {
         public string EmployeeID { get; set; }
+
+        public int PositionID { get; set; }
         public string Position { get; set; }
+       
         public string SchoolName { get; set; }
         public int CRecordID { get; set; }
+
+        
 
         public DateTime DateAdded { get; set; }
     }

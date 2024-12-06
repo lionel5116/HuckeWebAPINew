@@ -9,6 +9,8 @@ namespace HuckeWEBAPI.Models
     {
         public string Position { get; set; }
         public string PositionNumber { get; set; }
-        
+        public string CMBPos { get; set; }
+        public string CrossWalked { get; set; }
+
     }
 }
