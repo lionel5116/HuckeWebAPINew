@@ -514,7 +514,8 @@ namespace HuckeWEBAPI.Controllers
             var connectionString = "";
             string SQLCommandText = "";
 
-            SQLCommandText = $"SELECT DISTINCT([Org_Unit_Name]),Org_Unit FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT WHERE [Division] = {Division} AND Unit = {Unit}  AND LEN([Org_Unit_Name]) > 2 AND NES = 'NES'";
+            SQLCommandText = $"SELECT DISTINCT([Org_Unit_Name]),Org_Unit FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT WHERE [Division] = {Division} AND Unit = {Unit}  " +
+                             $"AND LEN([Org_Unit_Name]) > 2 AND NES = 'NES'";
 
             switch (s_Environment)
             {
@@ -577,8 +578,12 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
             string SQLCommandText = "";
+            /*
             SQLCommandText = @"select [Employee], [Employee Text] as EmployeeName,[Qualification Text] As Certification from YPBI_HPA_ZEMPQUAL_CERT_TABLE
 	                            WHERE [Employee] = @employeeID";
+            */
+            SQLCommandText = @"Select [Employee], EmployeeName,CERTIFICATIONS As Certification from EMPLOYEE_CERT_TABLE
+                             WHERE [Employee] = @employeeID";
 
             switch (s_Environment)
             {
@@ -644,6 +649,7 @@ namespace HuckeWEBAPI.Controllers
             */
 
             
+            /*
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
@@ -659,26 +665,27 @@ namespace HuckeWEBAPI.Controllers
                                     FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a 
 	                                LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
 		                            WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
-            
-            /*
+            */
+
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
 	                               a.Position_Name as [Role],
+                                   b.PositionID,
+                                   b.Position as PositionName,
 	                               '' as Eligibility,
-	                               c.[Qualification Text] As Certification,
-	                                b.CRecordID,b.Position,
+								   c.[Qualification Text] As Certification,
+                                   '' As Certification,
+                                   b.CRecordID,b.Position,
 	                                CrossWalked = CASE
-		                            WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-                                    FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a 
-	                                LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
-		                            LEFT JOIN 
-		                            (SELECT [Employee],min([Qualification Text]) as [Qualification Text]  FROM YPBI_HPA_ZEMPQUAL_CERT_TABLE
-		                             GROUP BY [Employee]
-		                            ) c on a.Employee = c.Employee
-		                            --YPBI_HPA_ZEMPQUAL_CERT_TABLE c on a.Employee = c.Employee
-		                            WHERE a.Org_Unit_Name = @SchoolName";
-            */
+                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+                                   LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+
+                                    LEFT JOIN
+                                    (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
+
+                                    WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
 
 
             switch (s_Environment)
