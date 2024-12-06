@@ -83,7 +83,7 @@ namespace HuckeWEBAPI.Controllers
                               AND
                               [Org_Unit_Name] =  @SchoolName
 							  AND
-							  Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                               order by
                               [Position]";
 
