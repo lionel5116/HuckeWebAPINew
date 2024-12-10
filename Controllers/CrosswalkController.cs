@@ -681,10 +681,8 @@ namespace HuckeWEBAPI.Controllers
                                     WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
                                     FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
-
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
-
                                     WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
 
 
@@ -1097,6 +1095,7 @@ namespace HuckeWEBAPI.Controllers
 
             const string sql2 = @"UPDATE CrossWalk SET 
                                        Position = @Position ,
+                                       PositionID = @PositionID,
                                        DateAdded = @DateAdded 
                                        WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName";
 
@@ -1108,6 +1107,7 @@ namespace HuckeWEBAPI.Controllers
                     SqlDataAdapter da = new SqlDataAdapter();
                     cmd.Parameters.AddWithValue("@EmployeeID", oCrosswalkEntryData.EmployeeID);
                     cmd.Parameters.AddWithValue("@Position", oCrosswalkEntryData.Position);
+                    cmd.Parameters.AddWithValue("@PositionID", oCrosswalkEntryData.PositionID);
                     cmd.Parameters.AddWithValue("@SchoolName", oCrosswalkEntryData.SchoolName);
                     cmd.Parameters.AddWithValue("@DateAdded", DateTime.Today);
 
