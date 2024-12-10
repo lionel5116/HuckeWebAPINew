@@ -772,6 +772,7 @@ namespace HuckeWEBAPI.Controllers
 	                               a.Employee_Name as EmployeeName,
 	                               a.Position_Name as [Role],
                                    b.PositionID,
+                                    a.Status,
                                    b.Position as PositionName,
 	                               '' as Eligibility,
 								   c.[Qualification Text] As Certification,
@@ -784,7 +785,8 @@ namespace HuckeWEBAPI.Controllers
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
                                     WHERE 
-                                    a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                                    --a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                                    a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     AND
                                     a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
 
@@ -838,6 +840,7 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.PositionName = row["PositionName"].ToString();
                         oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
                         oEmployeeTable.Eligibility = row["Eligibility"].ToString();
+                        oEmployeeTable.Status = row["Status"].ToString();
                         if (row["PositionID"].ToString().Length > 2)
                         {
                             oEmployeeTable.PositionID = int.Parse(row["PositionID"].ToString());
@@ -891,6 +894,7 @@ namespace HuckeWEBAPI.Controllers
             */
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,a.Position_Name as [Role],a.Position,
                                     b.Position as PositionName,b.PositionID,'' as Eligibility,
+                                    a.Status,
                                     c.[Qualification Text] As Certification,'' As Certification, b.CRecordID,b.Position,
                                     CrossWalked = CASE
                                     WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END FROM 
@@ -899,7 +903,8 @@ namespace HuckeWEBAPI.Controllers
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
                                     WHERE
-                                    a.Position IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                                    --a.Position IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                                    a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     AND
                                     a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1
                                     ";
@@ -953,6 +958,7 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.PositionName = row["PositionName"].ToString();
                         oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
                         oEmployeeTable.Eligibility = row["Eligibility"].ToString();
+                        oEmployeeTable.Status = row["Status"].ToString();
                         if (row["PositionID"].ToString().Length > 2)
                         {
                             oEmployeeTable.PositionID = int.Parse(row["PositionID"].ToString());
