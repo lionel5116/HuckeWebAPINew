@@ -427,7 +427,7 @@ namespace HuckeWEBAPI.Controllers
                     foreach (DataRow row in ds.Tables[0].Rows)
                     {
                         oAPRReport = new APRReport();
-                        oAPRReport.Employee = row["Employee_Name"].ToString();
+                        oAPRReport.Employee = row["Employee"].ToString();
                         oAPRReport.Employee_Name = row["Employee_Name"].ToString();
                         oAPRReport.CSS = row["CSS"].ToString();   
                         oAPRReport.Position = row["Position"].ToString();
