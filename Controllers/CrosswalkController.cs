@@ -371,20 +371,31 @@ namespace HuckeWEBAPI.Controllers
             List<APRReport> lstAPRReportData = new List<APRReport>();
 
             var connectionString = "";
-            string SQLCommandText = "";
-            SQLCommandText = @"SELECT [NES],
-                              [Employee],
-                              [Employee_Name],
-                              [Division],
-                             [Unit],
-                             [Org_Unit_Name],
-                              [Position],
-                              [Position_Name],
-                              [Job],
-                              [Job_Name],
-                              [Status]
-                          FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT]
-                          WHERE Org_Unit_Name = @SchoolName";
+            //string SQLCommandText = "";
+
+            var SQLCommandText = @"SELECT a.NES,
+                              a.Employee,
+                              a.Employee_Name,
+                              a.Position,
+                              Position_Name,
+                              a.Job,
+                              a.Job_Name,
+                              a.Status,
+                              '' as CSS,
+                              '' as Intent,
+                              ' ' as Eligibility,
+							  b.PositionID,
+							  b.Position  as CPosition,
+							  b.SchoolName,
+							   CrossWalked = CASE
+                               WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END,
+							   c.CERTIFICATIONS as Certification
+                              FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                               LEFT JOIN CrossWalk b
+                               ON a.Employee = b.EmployeeID
+                                LEFT JOIN EMPLOYEE_CERT_TABLE c
+                               ON a.Employee = c.Employee
+                              WHERE Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
 
             switch (s_Environment)
             {
@@ -416,17 +427,19 @@ namespace HuckeWEBAPI.Controllers
                     foreach (DataRow row in ds.Tables[0].Rows)
                     {
                         oAPRReport = new APRReport();
-                        oAPRReport.NES = row["NES"].ToString();
-                        oAPRReport.Employee = row["Employee"].ToString();
+                        oAPRReport.Employee = row["Employee_Name"].ToString();
                         oAPRReport.Employee_Name = row["Employee_Name"].ToString();
-                        oAPRReport.Division = row["Division"].ToString();
-                        oAPRReport.Unit = row["Unit"].ToString();
-                        oAPRReport.Org_Unit_Name = row["Org_Unit_Name"].ToString();
+                        oAPRReport.CSS = row["CSS"].ToString();   
                         oAPRReport.Position = row["Position"].ToString();
                         oAPRReport.Position_Name = row["Position_Name"].ToString();
-                        oAPRReport.Job = row["Job"].ToString();
-                        oAPRReport.Job_Name = row["Job_Name"].ToString();
-                        oAPRReport.Status = row["Status"].ToString();
+                        oAPRReport.Intent = row["Intent"].ToString();
+                        oAPRReport.Eligibility = row["Eligibility"].ToString();
+                        oAPRReport.Certification = row["Certification"].ToString();
+                        oAPRReport.CrossWalked = row["CrossWalked"].ToString();
+                        oAPRReport.PositionID = row["PositionID"].ToString();
+                        oAPRReport.CPosition = row["CPosition"].ToString();
+                        oAPRReport.SchoolName = row["SchoolName"].ToString();
+      
                         lstAPRReportData.Add(oAPRReport);
                         oAPRReport = null;
                     }
@@ -639,34 +652,8 @@ namespace HuckeWEBAPI.Controllers
             var connectionString = "";
             string SQLCommandText = "";
 
-            /*
-            var SQLCommandTextNew = @"SELECT a.EmployeeID,a.SchoolName,a.EmployeeName,a.Certification,a.Role,a.Eligibility,b.CRecordID,b.Position,
-                                CrossWalked = CASE
-		                        WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-                                FROM EmployeeTable a 
-	                            LEFT JOIN CrossWalk b on a.EmployeeID = b.EmployeeID
-								WHERE a.SchoolName = @SchoolName";
-            */
 
             
-            /*
-            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
-                                   a.Org_Unit_Name as SchoolName,
-	                               a.Employee_Name as EmployeeName,
-	                               a.Position_Name as [Role],
-                                   b.PositionID,
-                                   b.Position as PositionName,
-                                   '' as Certification,
-	                               '' as Eligibility,
-                                   '' As Certification,
-	                               b.CRecordID,b.Position,
-	                                CrossWalked = CASE
-		                            WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-                                    FROM [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a 
-	                                LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
-		                            WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
-            */
-
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
@@ -684,7 +671,37 @@ namespace HuckeWEBAPI.Controllers
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
                                     WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
+            
+            /*
+            var SQLCommandTextNew = @"SELECT a.NES,
+                              a.Employee,
+                              a.Employee_Name,
+                              a.Division,
+                              a.Unit,
+                              a.Org_Unit_Name,
+                              a.Position,
+                              Position_Name,
+                              a.Job,
+                              a.Job_Name,
+                              a.Status,
+                              '' as CSS,
+                              '' as Intent,
+                              ' ' as Eligibility,
+							  b.PositionID,
+							  b.Position,
+							  b.SchoolName,
+							   CrossWalked = CASE
+                               WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END,
+							   c.CERTIFICATIONS as Certification
+                              FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                               LEFT JOIN CrossWalk b
+                               ON a.Employee = b.EmployeeID
 
+                                LEFT JOIN EMPLOYEE_CERT_TABLE c
+
+                               ON a.Employee = c.Employee
+                              WHERE Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
+            */
 
             switch (s_Environment)
             {
@@ -839,6 +856,7 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
                         oEmployeeTable.Eligibility = row["Eligibility"].ToString();
                         oEmployeeTable.Status = row["Status"].ToString();
+                        oEmployeeTable.SchoolName = row["SchoolName"].ToString();
                         if (row["PositionID"].ToString().Length > 2)
                         {
                             oEmployeeTable.PositionID = int.Parse(row["PositionID"].ToString());
@@ -957,6 +975,7 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
                         oEmployeeTable.Eligibility = row["Eligibility"].ToString();
                         oEmployeeTable.Status = row["Status"].ToString();
+                        oEmployeeTable.SchoolName =  row["SchoolName"].ToString();
                         if (row["PositionID"].ToString().Length > 2)
                         {
                             oEmployeeTable.PositionID = int.Parse(row["PositionID"].ToString());

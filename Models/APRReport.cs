@@ -7,17 +7,19 @@ namespace HuckeWEBAPI.Models
 {
     public class APRReport
     {
-        public string NES { get; set; }
         public string Employee { get; set; }
         public string Employee_Name { get; set; }
-        public string Division { get; set; }
-
-        public string Unit { get; set; }
-        public string Org_Unit_Name { get; set; }
         public string Position { get; set; }
         public string Position_Name { get; set; }
-        public string Job { get; set; }
-        public string Job_Name { get; set; }
-        public string Status { get; set; }
+        public string CSS { get; set; }
+        public string Intent { get; set; }
+        public string Eligibility { get; set; }
+        public string PositionID { get; set; }
+        public string CPosition { get; set; }
+
+        public string SchoolName { get; set; }
+        public string CrossWalked { get; set; }
+        public string Certification { get; set; }
+
     }
 }
