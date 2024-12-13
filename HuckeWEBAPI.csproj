@@ -209,6 +209,7 @@
     <Compile Include="Models\EmployeeIDs.cs" />
     <Compile Include="Models\EmployeeTable.cs" />
     <Compile Include="Models\MainAccountInfo.cs" />
+    <Compile Include="Models\NotesNextStep.cs" />
     <Compile Include="Models\Positions.cs" />
     <Compile Include="Models\PropertyInfo.cs" />
     <Compile Include="Models\SchoolListing.cs" />

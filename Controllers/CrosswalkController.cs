@@ -283,8 +283,6 @@ namespace HuckeWEBAPI.Controllers
             return lstPositionData;
         }
 
-
-
         /*PULLING FROM NEW SCHEMA - REAL DATA */
         [Route("api/Crosswalk/fetcAssignedPositions/{SchoolName}")]
         [HttpGet]
@@ -1226,9 +1224,74 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
+        [HttpPost]
+        [Route("api/Crosswalk/AddEmployeeNotesNextStep")]
+        public bool AddEmployeeNotesNextStep([FromBody] NotesNextStep oNotesNextStepData)
+        {
+            bool bSuccess = false;
 
-  
 
+            var connectionString = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    //use local as the same for connection string while in test
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+            const string sql2 = @"INSERT INTO CrossWalk(
+                                            EmployeeID,
+                                            Notes,
+                                            NextSteps ,
+                                            SchoolName)
+                                        VALUES(
+                                            @EmployeeID,
+                                            @Notes,
+                                            @NextSteps ,
+                                            @SchoolName";
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@EmployeeID", oNotesNextStepData.EmployeeID);
+                    cmd.Parameters.AddWithValue("@Notes", oNotesNextStepData.Notes);
+                    cmd.Parameters.AddWithValue("@NextSteps", oNotesNextStepData.NextSteps);
+                    cmd.Parameters.AddWithValue("@SchoolName", oNotesNextStepData.SchoolName);
+
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+
+            return bSuccess;
+        }
 
         #endregion UsingRealDataSchema
 
