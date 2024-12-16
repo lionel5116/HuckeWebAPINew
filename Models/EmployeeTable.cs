@@ -27,5 +27,9 @@ namespace HuckeWEBAPI.Models
         public string PositionName { get; set; }
         public string Status { get; set; }
 
+        public string Notes { get; set; }
+        public string NextSteps { get; set; }
+        
+
     }
 }

@@ -795,13 +795,15 @@ namespace HuckeWEBAPI.Controllers
                                    '' As Certification,
                                    b.CRecordID,b.Position,
 	                                CrossWalked = CASE
-                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END,
+                                    d.Notes,
+                                    d.NextSteps
                                     FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                     LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
+                                    LEFT JOIN EmployeeNotesNextStep d on a.Employee = d.EmployeeID
                                     WHERE 
-                                    --a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     AND
                                     a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
@@ -858,6 +860,9 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.Eligibility = row["Eligibility"].ToString();
                         oEmployeeTable.Status = row["Status"].ToString();
                         oEmployeeTable.SchoolName = row["SchoolName"].ToString();
+                        oEmployeeTable.Notes = row["Notes"].ToString();
+                        oEmployeeTable.NextSteps = row["NextSteps"].ToString();
+
                         if (row["PositionID"].ToString().Length > 2)
                         {
                             oEmployeeTable.PositionID = int.Parse(row["PositionID"].ToString());
@@ -909,18 +914,20 @@ namespace HuckeWEBAPI.Controllers
                                     AND
                                     a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
             */
-            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,a.Position_Name as [Role],a.Position,
+            var SQLCommandTextNew = @" SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,a.Position_Name as [Role],a.Position,
                                     b.Position as PositionName,b.PositionID,'' as Eligibility,
                                     a.Status,
                                     c.[Qualification Text] As Certification,'' As Certification, b.CRecordID,b.Position,
                                     CrossWalked = CASE
-                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END FROM 
+                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END,
+									d.Notes
+									FROM 
                                     [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                     LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
+									LEFT JOIN EmployeeNotesNextStep d on a.Employee = d.EmployeeID
                                     WHERE
-                                    --a.Position IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     AND
                                     a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1
@@ -985,6 +992,7 @@ namespace HuckeWEBAPI.Controllers
                         {
                             oEmployeeTable.PositionID = 0;
                         }
+                        oEmployeeTable.Notes = row["Notes"].ToString();
 
                         lstEmployeeTableData.Add(oEmployeeTable);
                         oEmployeeTable = null;
@@ -1225,8 +1233,8 @@ namespace HuckeWEBAPI.Controllers
         }
 
         [HttpPost]
-        [Route("api/Crosswalk/AddEmployeeNotesNextStep")]
-        public bool AddEmployeeNotesNextStep([FromBody] NotesNextStep oNotesNextStepData)
+        [Route("api/Crosswalk/AddUpdateEmployeeNotesNextStep")]
+        public bool AddUpdateEmployeeNotesNextStep([FromBody] NotesNextStep oNotesNextStepData)
         {
             bool bSuccess = false;
 
@@ -1236,7 +1244,7 @@ namespace HuckeWEBAPI.Controllers
             switch (s_Environment)
             {
                 case "PROD":
-                    //use local as the same for connection string while in test
+                 
                     connectionString = s_ConnectionString_CrossWalk_Local;
 
                     break;
@@ -1250,7 +1258,11 @@ namespace HuckeWEBAPI.Controllers
                     break;
             }
 
-            const string sql2 = @"INSERT INTO CrossWalk(
+            string sql2 = "";
+
+            sql2 = @"IF NOT EXISTS(SELECT 1 FROM EmployeeNotesNextStep WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName)
+                                    BEGIN
+                                      INSERT INTO EmployeeNotesNextStep (
                                             EmployeeID,
                                             Notes,
                                             NextSteps ,
@@ -1258,8 +1270,19 @@ namespace HuckeWEBAPI.Controllers
                                         VALUES(
                                             @EmployeeID,
                                             @Notes,
-                                            @NextSteps ,
-                                            @SchoolName";
+                                            @NextSteps,
+                                            @SchoolName)
+                                    END
+                                ELSE
+                                    BEGIN
+                                       UPDATE EmployeeNotesNextStep SET
+                                       Notes = @Notes ,
+                                       NextSteps = @NextSteps 
+                                       WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName
+                                    END";
+
+
+          
 
             using (SqlConnection CONN = new SqlConnection(connectionString))
             {
@@ -1291,6 +1314,72 @@ namespace HuckeWEBAPI.Controllers
             }
 
             return bSuccess;
+        }
+
+        [Route("api/Crosswalk/fetchNextStepComplete/{SchoolName}")]
+        [HttpGet]
+        public int fetchNextStepComplete(string SchoolName)
+        {
+            
+
+            var connectionString = "";
+   
+            var SQLCommandText = @"SELECT count(*) As NotCrsWlkedVSNextSetp  --zero means that the record count does not match
+				               FROM 
+				               (
+					                     (SELECT x.TotalEmployees,y.TotalEmployeesWithNextStepRecord
+							              FROM 
+							              (SELECT count(a.Employee) As TotalEmployees
+							              FROM  [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+							              WHERE
+							              a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b) 
+							              AND
+							              a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1) x ,
+							              (SELECT count(a.EmployeeID) As TotalEmployeesWithNextStepRecord FROM  EmployeeNotesNextStep a
+							              WHERE
+							              LEN(a.NextSteps) > 2 
+							              AND
+							              a.SchoolName = @SchoolName )y
+							              WHERE 
+							              x.TotalEmployees = y.TotalEmployeesWithNextStepRecord)
+				              )z";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        recordCount = int.Parse(row["NotCrsWlkedVSNextSetp"].ToString());
+                    }
+                }
+            }
+
+            return recordCount;
         }
 
         #endregion UsingRealDataSchema
