@@ -1382,6 +1382,120 @@ namespace HuckeWEBAPI.Controllers
             return recordCount;
         }
 
+
+        [Route("api/Crosswalk/fetchCrosswalkChartData/")]
+        [HttpGet]
+        public List<CrossWalkChartData> fetchCrosswalkChartData()
+        {
+
+            CrossWalkChartData oCrosswalkChartData;
+            List<CrossWalkChartData> lstCrosswalkChartData = new List<CrossWalkChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT count(CRecordID) as NumCrosswalked,[SchoolName] from CrossWalk
+                                  group by 
+                                  [SchoolName]";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    //cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new CrossWalkChartData();
+                        oCrosswalkChartData.NumCrosswalked = int.Parse(row["NumCrosswalked"].ToString());
+                        oCrosswalkChartData.SchoolName = row["SchoolName"].ToString();
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
+        [Route("api/Crosswalk/fetchCrosswalkChartDataByDivisionAndUnit/{area}")]
+        [HttpGet]
+        public List<CrossWalkChartData> fetchCrosswalkChartDataByDivisionAndUnit(string area)
+        {
+
+            string Division = "'" + area.Split('|')[0].ToString() + "'";
+            string Unit = "'" + area.Split('|')[1].ToString() + "'";
+
+            CrossWalkChartData oCrosswalkChartData;
+            List<CrossWalkChartData> lstCrosswalkChartData = new List<CrossWalkChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = $"SELECT count(a.CRecordID) as NumCrosswalked,a.SchoolName,b.Division,b.Unit from CrossWalk a " +
+                                 $"LEFT JOIN [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] b on a.EmployeeID = b.Employee " +
+                                 $"WHERE b.Division = {Division} AND b.Unit = {Unit} group by a.SchoolName,b.Division,b.Unit";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    //cmd.Parameters.AddWithValue("@Division", Division);
+                    //cmd.Parameters.AddWithValue("@Unit", Unit);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new CrossWalkChartData();
+                        oCrosswalkChartData.NumCrosswalked = int.Parse(row["NumCrosswalked"].ToString());
+                        oCrosswalkChartData.SchoolName = row["SchoolName"].ToString();
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
         #endregion UsingRealDataSchema
 
 

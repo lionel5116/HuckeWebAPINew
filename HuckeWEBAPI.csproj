@@ -205,6 +205,7 @@
     <Compile Include="Models\CertificationData.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\CroseArgs.cs" />
+    <Compile Include="Models\CrossWalkChartData.cs" />
     <Compile Include="Models\CrosswalkData.cs" />
     <Compile Include="Models\EmployeeIDs.cs" />
     <Compile Include="Models\EmployeeTable.cs" />
