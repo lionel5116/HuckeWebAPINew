@@ -1316,71 +1316,7 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
-        [Route("api/Crosswalk/fetchNextStepComplete/{SchoolName}")]
-        [HttpGet]
-        public int fetchNextStepComplete(string SchoolName)
-        {
-            
-
-            var connectionString = "";
-   
-            var SQLCommandText = @"SELECT count(*) As NotCrsWlkedVSNextSetp  --zero means that the record count does not match
-				               FROM 
-				               (
-					                     (SELECT x.TotalEmployees,y.TotalEmployeesWithNextStepRecord
-							              FROM 
-							              (SELECT count(a.Employee) As TotalEmployees
-							              FROM  [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
-							              WHERE
-							              a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b) 
-							              AND
-							              a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1) x ,
-							              (SELECT count(a.EmployeeID) As TotalEmployeesWithNextStepRecord FROM  EmployeeNotesNextStep a
-							              WHERE
-							              LEN(a.NextSteps) > 2 
-							              AND
-							              a.SchoolName = @SchoolName )y
-							              WHERE 
-							              x.TotalEmployees = y.TotalEmployeesWithNextStepRecord)
-				              )z";
-
-            switch (s_Environment)
-            {
-                case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-            }
-
-            int recordCount = 0;
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                
-                    foreach (DataRow row in ds.Tables[0].Rows)
-                    {
-                        recordCount = int.Parse(row["NotCrsWlkedVSNextSetp"].ToString());
-                    }
-                }
-            }
-
-            return recordCount;
-        }
+       
 
 
         [Route("api/Crosswalk/fetchCrosswalkChartData/")]
@@ -1496,6 +1432,202 @@ namespace HuckeWEBAPI.Controllers
 
             return lstCrosswalkChartData;
         }
+
+
+        /*NEXT STEPS*/
+        [Route("api/Crosswalk/fetchNextStepComplete/{SchoolName}")]
+        [HttpGet]
+        public int fetchNextStepComplete(string SchoolName)
+        {
+
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT count(*) As NotCrsWlkedVSNextSetp  --zero means that the record count does not match
+				               FROM 
+				               (
+					                     (SELECT x.TotalEmployees,y.TotalEmployeesWithNextStepRecord
+							              FROM 
+							              (SELECT count(a.Employee) As TotalEmployees
+							              FROM  [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+							              WHERE
+							              a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b) 
+							              AND
+							              a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1) x ,
+							              (SELECT count(a.EmployeeID) As TotalEmployeesWithNextStepRecord FROM  EmployeeNotesNextStep a
+							              WHERE
+							              LEN(a.NextSteps) > 2 
+							              AND
+							              a.SchoolName = @SchoolName )y
+							              WHERE 
+							              x.TotalEmployees = y.TotalEmployeesWithNextStepRecord)
+				              )z";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        recordCount = int.Parse(row["NotCrsWlkedVSNextSetp"].ToString());
+                    }
+                }
+            }
+
+            return recordCount;
+        }
+
+
+        [Route("api/Crosswalk/fetchNextStepListItems/")]
+        [HttpGet]
+        public List<tblNextStep>fetchNextStepListItems()
+        {
+
+            tblNextStep oStepData;
+            List<tblNextStep> lstStepData = new List<tblNextStep>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"select stepID,NextStep from tblNextStep";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oStepData = new tblNextStep();
+                        oStepData.stepID = int.Parse(row["stepID"].ToString());
+                        oStepData.NextStep = row["NextStep"].ToString();
+                        lstStepData.Add(oStepData);
+
+                    }
+                }
+            }
+
+            return lstStepData;
+        }
+
+
+        [HttpPost]
+        [Route("api/Crosswalk/AddOrUpdateNextStepRecordListItems/")]
+        public bool AddOrUpdateNextStepRecordListItems([FromBody] tblNextStep oStepData)
+        {
+            bool bSuccess = false;
+
+
+            var connectionString = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    //use local as the same for connection string while in test
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+            const string sql2 = @"
+                                IF NOT EXISTS(SELECT 1 FROM tblNextStep WHERE stepID = @stepID)
+                                    BEGIN
+                                        INSERT INTO tblNextStep(
+                                           NextStep )
+                                        VALUES(
+                                               @NextStep)
+                                    END
+                                ELSE
+                                    BEGIN
+                                       UPDATE tblNextStep SET 
+                                       NextStep = @NextStep
+                                       WHERE stepID = @stepID 
+                                    END";
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@stepID", oStepData.stepID);
+                    cmd.Parameters.AddWithValue("@NextStep", oStepData.NextStep);
+                   
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+
+            return bSuccess;
+        }
+
+        /*END NEXT STEPS*/
+
         #endregion UsingRealDataSchema
 
 
