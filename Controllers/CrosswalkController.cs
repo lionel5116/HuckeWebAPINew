@@ -1775,6 +1775,158 @@ namespace HuckeWEBAPI.Controllers
 
         /*END NEXT STEPS*/
 
+
+        /*CHARTING DATA*/
+        [Route("api/Crosswalk/fetchCrosswalkDashboardData/{SchoolName}")]
+        [HttpGet]
+        public List<ChartDataMainDBoard> fetchCrosswalkDashboardData(string SchoolName)
+        {
+
+            ChartDataMainDBoard oCrosswalkChartData;
+            List<ChartDataMainDBoard> lstCrosswalkChartData = new List<ChartDataMainDBoard>();
+
+            var connectionString = "";
+
+            var SQLCommandTextx = @"SELECT count(CRecordID) as NumCrosswalked,[SchoolName] from CrossWalk
+                                  group by 
+                                  [SchoolName]";
+
+            /*
+            var SQLCommandText = @"WITH AssignedCount AS(
+                            SELECT COUNT(PositionID) AS ASSIGNED
+                            FROM CrossWalk
+                            WHERE SchoolName = @SchoolName
+                        ),
+                        NotStartedCount AS(
+                            SELECT COUNT(a.Position) AS NOTSTARTED
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                            LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
+                            WHERE LEN([Org_Unit_Name]) > 2
+                              AND NES = 'NES'
+                              AND[Org_Unit_Name] = @SchoolName
+                              AND a.Employee NOT IN(
+                                  SELECT b.EmployeeID
+                                  FROM CrossWalk b
+                                  WHERE b.EmployeeID IS NOT NULL
+                              )
+                              AND LEN(a.Employee) > 1
+                        ),
+                        InProgressCount AS(
+                            SELECT COUNT(a.Position) AS INPROGRESS
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                            LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
+                            WHERE LEN([Org_Unit_Name]) > 2
+                              AND NES = 'NES'
+                              AND[Org_Unit_Name] = @SchoolName
+                              AND a.Employee NOT IN(
+                                  SELECT b.EmployeeID
+                                  FROM CrossWalk b
+                                  WHERE b.EmployeeID IS NOT NULL
+                              )
+                              AND LEN(a.Employee) > 1
+                        )
+                        SELECT
+                            ac.ASSIGNED, 
+                            nsc.NOTSTARTED,
+	                        ipc.INPROGRESS
+                        FROM
+                            AssignedCount ac,
+                            NotStartedCount nsc,
+	                        InProgressCount ipc";
+            */
+                    var SQLCommandText = @"WITH AssignedCount AS(
+                            SELECT COUNT(PositionID) AS ASSIGNED
+                            FROM CrossWalk
+                            WHERE SchoolName  = @SchoolName
+                        ),
+                        NotStartedCount AS(
+                            SELECT COUNT(a.Position) AS NOTSTARTED
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                            LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
+                            WHERE LEN([Org_Unit_Name]) > 2
+                              AND NES = 'NES'
+                              AND[Org_Unit_Name] = @SchoolName
+                              AND a.Employee NOT IN(
+                                  SELECT b.EmployeeID
+                                  FROM CrossWalk b
+                                  WHERE b.EmployeeID IS NOT NULL
+                              )
+                              AND LEN(a.Employee) > 1
+                        ),
+                        InProgressCount AS(
+                            SELECT COUNT(a.Position) AS INPROGRESS
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                            LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
+                            WHERE LEN([Org_Unit_Name]) > 2
+                              AND NES = 'NES'
+                              AND[Org_Unit_Name] = @SchoolName
+                              AND a.Employee NOT IN(
+                                  SELECT b.EmployeeID
+                                  FROM CrossWalk b
+                                  WHERE b.EmployeeID IS NOT NULL
+                              )
+                              AND LEN(a.Employee) > 1
+                        ),
+                        SubmittedCount AS(
+                           SELECT COUNT(PositionID) AS SUBMITTED
+                            FROM CrossWalk
+                            WHERE SchoolName= @SchoolName
+                        )
+                        SELECT
+                            ac.ASSIGNED, 
+                            nsc.NOTSTARTED,
+	                        ipc.INPROGRESS,
+	                        scnt.SUBMITTED
+                        FROM
+                            AssignedCount ac,
+                            NotStartedCount nsc,
+	                        InProgressCount ipc,
+                            SubmittedCount scnt";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new ChartDataMainDBoard();
+                        oCrosswalkChartData.ASSIGNED = int.Parse(row["ASSIGNED"].ToString());
+                        oCrosswalkChartData.NOTSTARTED = int.Parse(row["NOTSTARTED"].ToString());
+                        oCrosswalkChartData.INPROGRESS = int.Parse(row["INPROGRESS"].ToString());
+                        oCrosswalkChartData.SUBMITTED = int.Parse(row["SUBMITTED"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+        /*END  CHARTING DATA   */
+
         #endregion UsingRealDataSchema
 
 
