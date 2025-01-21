@@ -1927,6 +1927,142 @@ namespace HuckeWEBAPI.Controllers
         }
         /*END  CHARTING DATA   */
 
+        /*Aknowledgment  */
+
+        [HttpPost]
+        [Route("api/Crosswalk/AddAknowledgementData/")]
+        public bool AddAknowledgementData([FromBody] AknowledgementTable oAcknowledgmentData)
+        {
+            bool bSuccess = false;
+
+
+            var connectionString = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    //use local as the same for connection string while in test
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+            const string sql2 = @"
+                                IF NOT EXISTS(SELECT 1 FROM AknowledgementTable WHERE Employee = @Employee)
+                                    BEGIN
+                                        INSERT INTO AknowledgementTable(
+                                           Employee,Org_Unit_Name,CompletionDate)
+                                        VALUES(
+                                          @Employee,@Org_Unit_Name,@CompletionDate)
+                                    END
+                                ELSE
+                                    BEGIN
+                                       UPDATE AknowledgementTable SET 
+                                       Employee= @Employee,
+                                       Org_Unit_Name= @Org_Unit_Name,
+                                       CompletionDate= @CompletionDate
+                                       WHERE Employee = @Employee 
+                                    END";
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@Employee", oAcknowledgmentData.Employee);
+                    cmd.Parameters.AddWithValue("@Org_Unit_Name", oAcknowledgmentData.Org_Unit_Name);
+                    cmd.Parameters.AddWithValue("@CompletionDate", oAcknowledgmentData.CompletionDate);
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+
+            return bSuccess;
+        }
+
+
+        [Route("api/Crosswalk/fetchAknowledgementEmployee/{Employee}")]
+        [HttpGet]
+        public string fetchAknowledgementEmployee(int Employee)
+        {
+
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT Employee FROM AknowledgementTable WHERE Employee = @Employee";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            string _employee = "";
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@Employee", Employee);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+                        foreach (DataRow row in ds.Tables[0].Rows)
+                        {
+                            _employee = row["Employee"].ToString();
+                        }
+                    }
+                    else
+                    {
+                        _employee = "";
+                    }
+                   
+                }
+            }
+
+            return _employee;
+        }
+
+
+        /*End Aknowledgment   */
+
+
         #endregion UsingRealDataSchema
 
 
