@@ -890,30 +890,8 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
             string SQLCommandText = "";
-
-
-            /*
-            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
-                                   a.Org_Unit_Name as SchoolName,
-	                               a.Employee_Name as EmployeeName,
-	                               a.Position_Name as [Role],
-                                   b.PositionID,
-                                   b.Position as PositionName,
-	                               '' as Eligibility,
-								   c.[Qualification Text] As Certification,
-                                   '' As Certification,
-                                   b.CRecordID,b.Position,
-	                                CrossWalked = CASE
-                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
-                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
-                                    LEFT JOIN
-                                    (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
-                                    WHERE 
-                                    a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
-                                    AND
-                                    a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
-            */
+  
+       
             var SQLCommandTextNew = @" SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,a.Position_Name as [Role],a.Position,
                                     b.Position as PositionName,b.PositionID,'' as Eligibility,
                                     a.Status,
@@ -1773,6 +1751,115 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
+        
+
+        [Route("api/Crosswalk/DeleteNextStepRecordListItems/{stepID}")]
+        [HttpGet]
+        public bool DeleteNextStepRecordListItems(int stepID)
+        {
+
+            bool bSuccess = false;
+            var connectionString = "";
+
+            //DELETE tblNextStep WHERE stepID = 7
+            var SQLCommandText = @"DELETE tblNextStep WHERE stepID = @stepID";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@stepID", stepID);
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+            return bSuccess;
+        }
+
+        [Route("api/Crosswalk/AddNextStepRecordListItem/{NextStep}")]
+        [HttpGet]
+        public bool AddNextStepRecordListItem(string NextStep)
+        {
+
+            bool bSuccess = false;
+            var connectionString = "";
+
+            var SQLCommandText = @"INSERT INTO tblNextStep([NextStep]) VALUES(@NextStep)";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@NextStep", NextStep);
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+            return bSuccess;
+        }
+
         /*END NEXT STEPS*/
 
 
@@ -2059,7 +2146,59 @@ namespace HuckeWEBAPI.Controllers
             return _employee;
         }
 
+        [Route("api/Crosswalk/DeleteAknowledgementEmployee/{Employee}")]
+        [HttpGet]
+        public bool DeleteAknowledgementEmployee(int Employee)
+        {
 
+            bool bSuccess = false;
+            var connectionString = "";
+
+            var SQLCommandText = @"DELETE AknowledgementTable WHERE Employee = @Employee";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@Employee", Employee);
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+            return bSuccess;
+        }
+       
         /*End Aknowledgment   */
 
 
