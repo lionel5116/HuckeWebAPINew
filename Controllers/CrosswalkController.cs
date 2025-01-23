@@ -2198,8 +2198,248 @@ namespace HuckeWEBAPI.Controllers
             }
             return bSuccess;
         }
-       
+
         /*End Aknowledgment   */
+
+        /*Application Date Range */
+        [HttpPost]
+        [Route("api/Crosswalk/AddApplicationDateRangeParameters")]
+        public bool AddApplicationDateRangeParameters([FromBody] AppDateRange oAppDateRange)
+        {
+            bool bSuccess = false;
+
+
+            var connectionString = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+            string sql2 = "";
+
+            sql2 = @"IF NOT EXISTS(SELECT 1 FROM ApplicationDateRangeParameters WHERE Year = @Year)
+                                    BEGIN
+                                      INSERT INTO ApplicationDateRangeParameters (
+                                            StartDate,
+                                            EndDate,
+                                            Year)
+                                        VALUES(
+                                            @StartDate,
+                                            @EndDate,
+                                            @Year)
+                                    END
+                               ";
+
+
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@StartDate", oAppDateRange.StartDate);
+                    cmd.Parameters.AddWithValue("@EndDate", oAppDateRange.EndDate);
+                    cmd.Parameters.AddWithValue("@Year", oAppDateRange.Year);
+                    
+
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+
+            return bSuccess;
+        }
+
+        [Route("api/Crosswalk/fetcApplicationDateRange/{year}")]
+        [HttpGet]
+        public List<AppDateRange> fetcApplicationDateRange(string year)
+        {
+
+            AppDateRange oAppDateRange;
+            List<AppDateRange> lstDateRangeData = new List<AppDateRange>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"select StartDate,EndDate,Year from ApplicationDateRangeParameters WHERE Year = @year";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    //cmd.Parameters.Add(year);
+                    cmd.Parameters.AddWithValue("@year", year);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oAppDateRange = new AppDateRange();
+                        oAppDateRange.StartDate  = DateTime.Parse(row["StartDate"].ToString());
+                        oAppDateRange.EndDate = DateTime.Parse(row["EndDate"].ToString());
+                        oAppDateRange.Year = row["Year"].ToString();
+                        lstDateRangeData.Add(oAppDateRange);
+
+                    }
+                }
+            }
+
+            return lstDateRangeData;
+        }
+
+        [Route("api/Crosswalk/fetchAllApplicationDateRanges/")]
+        [HttpGet]
+        public List<AppDateRange> fetchAllApplicationDateRanges()
+          {
+
+            AppDateRange oAppDateRange;
+            List<AppDateRange> lstDateRangeData = new List<AppDateRange>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"select StartDate,EndDate,Year from ApplicationDateRangeParameters";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oAppDateRange = new AppDateRange();
+                        oAppDateRange.StartDate = DateTime.Parse(row["StartDate"].ToString());
+                        oAppDateRange.EndDate = DateTime.Parse(row["EndDate"].ToString());
+                        oAppDateRange.Year = row["Year"].ToString();
+                        lstDateRangeData.Add(oAppDateRange);
+
+                    }
+                }
+            }
+
+            return lstDateRangeData;
+        }
+
+        [Route("api/Crosswalk/DeleteAppDateRanges/{year}")]
+        [HttpGet]
+        public bool DeleteAppDateRanges(string year)
+        {
+
+            bool bSuccess = false;
+            var connectionString = "";
+
+            var SQLCommandText = @"DELETE ApplicationDateRangeParameters WHERE Year = @year";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@year", year);
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+            return bSuccess;
+        }
+
+        /*END Application Date Range  */
 
 
         #endregion UsingRealDataSchema

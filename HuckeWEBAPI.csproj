@@ -201,6 +201,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AknowledgementTable.cs" />
+    <Compile Include="Models\AppDateRange.cs" />
     <Compile Include="Models\APRReport.cs" />
     <Compile Include="Models\BTClientData.cs" />
     <Compile Include="Models\CertificationData.cs" />
