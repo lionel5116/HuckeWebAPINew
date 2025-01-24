@@ -2012,6 +2012,257 @@ namespace HuckeWEBAPI.Controllers
 
             return lstCrosswalkChartData;
         }
+
+        [Route("api/Crosswalk/fetchCrosswalPostionStatus/")]
+        [HttpGet]
+        public List<ChartDataPositionStatus> fetchCrosswalPostionStatus()
+        {
+
+            ChartDataPositionStatus oCrosswalkChartData;
+            List<ChartDataPositionStatus> lstCrosswalkChartData = new List<ChartDataPositionStatus>();
+
+            var connectionString = "";
+
+           
+            var SQLCommandText = @"WITH CurrentStaffCount AS(
+                             SELECT COUNT(Employee) AS CurrentStaff
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT
+                            WHERE NES = 'NES'
+                        ),
+                        TransfeCount AS(
+                           SELECT COUNT(PositionID) AS Transfers
+                            FROM CrossWalk
+                        ),
+                        VacantCount AS(
+                         SELECT 30 AS Vacant
+                        )
+                        SELECT
+                            csc.CurrentStaff, 
+                            trc.Transfers,
+	                        vc.Vacant
+                        FROM
+                            CurrentStaffCount csc,
+                            TransfeCount trc,
+	                        VacantCount vc
+                       ";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new ChartDataPositionStatus();
+                        oCrosswalkChartData.CURRENTSTAFF = int.Parse(row["CurrentStaff"].ToString());
+                        oCrosswalkChartData.TRANSFERS = int.Parse(row["Transfers"].ToString());
+                        oCrosswalkChartData.VACANT = int.Parse(row["Vacant"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
+        [Route("api/Crosswalk/fetchCrosswalkCompletionStatus/")]
+        [HttpGet]
+        public List<ChartDataCompletionStatus> fetchCrosswalkCompletionStatus()
+        {
+
+            ChartDataCompletionStatus oCrosswalkChartData;
+            List<ChartDataCompletionStatus> lstCrosswalkChartData = new List<ChartDataCompletionStatus>();
+
+            var connectionString = "";
+
+
+            var SQLCommandText = @" WITH PrincPlacedCount AS(
+                           SELECT COUNT(Employee) AS PrinciplePlaced
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT
+                            WHERE NES = 'NES'
+                        ),
+                        NonPlacedCount AS(
+                            SELECT COUNT(a.Position) AS NonPlaced
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                            LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
+                            WHERE LEN([Org_Unit_Name]) > 2
+                              AND NES = 'NES'
+                              AND a.Employee NOT IN(
+                                  SELECT b.EmployeeID
+                                  FROM CrossWalk b
+                                  WHERE b.EmployeeID IS NOT NULL
+                              )
+                              AND LEN(a.Employee) > 1
+                        ),
+                          EligiblePlacedCount AS(
+                          SELECT 300 AS EligiblePlaced
+                        ),
+						NonEligiblePlacedCount AS(
+                          SELECT 250 AS NonEligiblePlaced
+                        )
+                        SELECT
+                            pp.PrinciplePlaced, 
+                            np.NonPlaced,
+	                        ep.EligiblePlaced,
+							nep.NonEligiblePlaced
+                        FROM
+                            PrincPlacedCount pp,
+                            NonPlacedCount np,
+	                        EligiblePlacedCount ep,
+							NonEligiblePlacedCount nep
+                       ";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new ChartDataCompletionStatus();
+                        oCrosswalkChartData.PRINCIPLEPLACED = int.Parse(row["PrinciplePlaced"].ToString());
+                        oCrosswalkChartData.NONPLACED = int.Parse(row["NonPlaced"].ToString());
+                        oCrosswalkChartData.ELIGIBLEPLACED = int.Parse(row["EligiblePlaced"].ToString());
+                        oCrosswalkChartData.NONELIGIBLEPLACED = int.Parse(row["NonEligiblePlaced"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+        [Route("api/Crosswalk/fetchCrosswalkChartDataNESEligibility/")]
+        [HttpGet]
+        public List<ChartDataNESEligibility> fetchCrosswalkChartDataNESEligibility()
+        {
+
+            ChartDataNESEligibility oCrosswalkChartData;
+            List<ChartDataNESEligibility> lstCrosswalkChartData = new List<ChartDataNESEligibility>();
+
+            var connectionString = "";
+
+
+            var SQLCommandText = @"WITH EligibleNICount AS(
+                           SELECT COUNT(Employee) AS EligibleNoIdentified
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT
+                            WHERE NES = 'NES'
+                        ),
+                        PrincipleCount AS(
+                            SELECT COUNT(a.Position) AS Principle
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                            LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
+                            WHERE LEN([Org_Unit_Name]) > 2
+                              AND NES = 'NES'
+                              AND a.Employee NOT IN(
+                                  SELECT b.EmployeeID
+                                  FROM CrossWalk b
+                                  WHERE b.EmployeeID IS NOT NULL
+                              )
+                              AND LEN(a.Employee) > 1
+                        ),
+                          EligibleCount AS(
+                          SELECT 300 AS Eligible
+                        ),
+						NonEligibleCount AS(
+                          SELECT 250 AS NonEligible
+                        )
+                        SELECT
+                            eni.EligibleNoIdentified, 
+                            pc.Principle,
+	                        ec.Eligible,
+							ne.NonEligible
+                        FROM
+                            EligibleNICount eni,
+                            PrincipleCount pc,
+	                        EligibleCount ec,
+							NonEligibleCount ne";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new ChartDataNESEligibility();
+                        oCrosswalkChartData.EligibleNoIdentified = int.Parse(row["EligibleNoIdentified"].ToString());
+                        oCrosswalkChartData.Principle = int.Parse(row["Principle"].ToString());
+                        oCrosswalkChartData.Eligible = int.Parse(row["Eligible"].ToString());
+                        oCrosswalkChartData.NonEligible = int.Parse(row["NonEligible"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
         /*END  CHARTING DATA   */
 
         /*Aknowledgment  */

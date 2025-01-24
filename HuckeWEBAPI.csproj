@@ -205,7 +205,10 @@
     <Compile Include="Models\APRReport.cs" />
     <Compile Include="Models\BTClientData.cs" />
     <Compile Include="Models\CertificationData.cs" />
+    <Compile Include="Models\ChartDataCompletionStatus.cs" />
     <Compile Include="Models\ChartDataMainDBoard.cs" />
+    <Compile Include="Models\ChartDataNESEligibility.cs" />
+    <Compile Include="Models\ChartDataPositionStatus.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\CroseArgs.cs" />
     <Compile Include="Models\CrossWalkChartData.cs" />
