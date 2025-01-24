@@ -221,6 +221,7 @@
     <Compile Include="Models\PropertyInfo.cs" />
     <Compile Include="Models\SchoolListing.cs" />
     <Compile Include="Models\tblNextStep.cs" />
+    <Compile Include="Models\UnitsForDivision.cs" />
     <Compile Include="Models\VendorCROSE.cs" />
     <Compile Include="Models\VoteSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

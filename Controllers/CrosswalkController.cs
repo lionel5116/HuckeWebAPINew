@@ -2693,6 +2693,64 @@ namespace HuckeWEBAPI.Controllers
         /*END Application Date Range  */
 
 
+        /*FETCH UNIT BASED ON DIVISION */
+        [Route("api/Crosswalk/fetchUnitsBasedOnDivision/{Division}")]
+        [HttpGet]
+        public List<UnitsForDivision> fetchUnitsBasedOnDivision(string Division)
+        {
+
+            UnitsForDivision oUnits;
+            List<UnitsForDivision> lstUnitData = new List<UnitsForDivision>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT Unit AS UNIT FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT WHERE NES = 'NES' AND Division = @Division AND UNIT != '#N/A'
+                                  GROUP BY UNIT
+                                  ORDER BY Unit ASC";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            string Unit = "";
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    //cmd.Parameters.Add(year);
+                    cmd.Parameters.AddWithValue("@Division", Division);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                   
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oUnits = new UnitsForDivision();
+                        oUnits.Units =  row["UNIT"].ToString();
+                        lstUnitData.Add(oUnits);
+
+                    }
+                }
+            }
+
+            return lstUnitData;
+        }
+        /*END FETCH UNIT BASED ON DIVISION */
         #endregion UsingRealDataSchema
 
 
