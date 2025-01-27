@@ -9,7 +9,7 @@ namespace HuckeWEBAPI.Models
     {
         public int EmployeeID { get; set; }
         public string Notes { get; set; }
-        public string NextSteps { get; set; }
+        public string NextStep { get; set; }
         public string SchoolName { get; set; }
     }
 }

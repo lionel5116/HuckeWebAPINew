@@ -61,8 +61,8 @@ namespace HuckeWEBAPI.Controllers
         }
 
 
-        #region UsingRealDataSchema
-        /*PULLING FROM NEW SCHEMA - REAL DATA - EXCLUDES ANY POSITIONS THAT EXIST IN CROSSWALK TALBE*/
+       
+      
         [Route("api/Crosswalk/fetchAllPositionsBySchoolNameWOCrosswalk/{SchoolName}")]
         [HttpGet]
         public List<Positions> fetchAllPositionsBySchoolNameWOCrosswalk(string SchoolName)
@@ -132,7 +132,7 @@ namespace HuckeWEBAPI.Controllers
             return lstPositionData;
         }
 
-        /*PULLING FROM NEW SCHEMA - REAL DATA */
+      
         [Route("api/Crosswalk/fetchAllPositionsBySchoolName/{SchoolName}")]
         [HttpGet]
         public List<Positions> fetchAllPositionsBySchoolName(string SchoolName)
@@ -200,7 +200,7 @@ namespace HuckeWEBAPI.Controllers
             return lstPositionData;
         }
 
-        /*PULLING FROM NEW SCHEMA - REAL DATA */
+     
         [Route("api/Crosswalk/fetchUnassignedPositions/{SchoolName}")]
         [HttpGet]
         public List<Positions> fetchUnassignedPositions(string SchoolName)
@@ -211,17 +211,7 @@ namespace HuckeWEBAPI.Controllers
             var connectionString = "";
             string SQLCommandText = "";
             
-            /*
-            SQLCommandText = @"SELECT distinct Position as PositionNumber,[Position_Name] as Position,CONVERT(varchar(20),Position) + ' - ' + [Position_Name] AS CMBPos FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT
-                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
-                              AND
-                              [Org_Unit_Name] = @SchoolName
-							  AND
-							  [Position_Name] NOT IN (SELECT b.Position FROM CrossWalk b WHERE b.Position IS NOT NULL)
-                              order by
-                              [Position]";
-
-            */
+         
 
             SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
                               CrossWalked = CASE
@@ -283,7 +273,7 @@ namespace HuckeWEBAPI.Controllers
             return lstPositionData;
         }
 
-        /*PULLING FROM NEW SCHEMA - REAL DATA */
+        
         [Route("api/Crosswalk/fetcAssignedPositions/{SchoolName}")]
         [HttpGet]
         public List<Positions> fetcAssignedPositions(string SchoolName)
@@ -295,21 +285,7 @@ namespace HuckeWEBAPI.Controllers
             string SQLCommandText = "";
 
 
-            /*
-            SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
-                              CrossWalked = CASE
-		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-							  LEFT JOIN CrossWalk b on a.[Position_Name] = b.Position
-                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
-                              AND
-                              [Org_Unit_Name] =  @SchoolName
-							  AND
-							  [Position_Name] NOT IN (SELECT b.Position FROM CrossWalk b WHERE b.Position IS NOT NULL)
-                              order by
-                              [Position]";
-
-            */
+           
             SQLCommandText = @"SELECT PositionID as PositionNumber,Position,SchoolName,
                                CONVERT(varchar(20),PositionID) + ' - ' + [Position] AS CMBPos,
 	                           'YES' as CrossWalked 
@@ -363,7 +339,7 @@ namespace HuckeWEBAPI.Controllers
         }
 
 
-        /*PULLING FROM NEW SCHEMA - REAL DATA */
+       
         [Route("api/Crosswalk/fetchAPRData/{SchoolName}")]
         [HttpGet]
         public List<APRReport> fetchAPRData(string SchoolName)
@@ -450,7 +426,7 @@ namespace HuckeWEBAPI.Controllers
             return lstAPRReportData;
         }
 
-        /*PULLING FROM NEW SCHEMA - REAL DATA */
+       
         [Route("api/Crosswalk/fetchSchoolListingsRealData/")]
         [HttpGet]
         public List<SchoolListing> fetchSchoolListingsRealData()
@@ -514,7 +490,7 @@ namespace HuckeWEBAPI.Controllers
             return lstSchoolistingData;
         }
 
-        /*PULLING FROM NEW SCHEMA - REAL DATA */
+     
         [Route("api/Crosswalk/fetchSchoolListingsFilteredByDivAndUnit/{area}")]
         [HttpGet]
         public List<SchoolListing> fetchSchoolListingsFilteredByDivAndUnit(string area)
@@ -582,7 +558,6 @@ namespace HuckeWEBAPI.Controllers
         }
 
 
-        /*PULLING FROM NEW SCHEMA - REAL DATA */
         [Route("api/Crosswalk/fetchCERTData/{employeeID}")]
         [HttpGet]
         public List<CertificationData> fetchCERTData(string employeeID)
@@ -642,7 +617,7 @@ namespace HuckeWEBAPI.Controllers
             return lstCERTData;
         }
 
-        /*PULLING FROM NEW SCHEMA - REAL DATA */
+
         [Route("api/Crosswalk/fetchAllEmployeeDataBySchoolName/{SchoolName}")]
         [HttpGet]
         public List<EmployeeTable> fetchAllEmployeeDataBySchoolName(string SchoolName)
@@ -797,12 +772,13 @@ namespace HuckeWEBAPI.Controllers
 	                                CrossWalked = CASE
                                     WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END,
                                     d.Notes,
-                                    d.NextSteps
+                                    e.NextStep
                                     FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                     LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
-                                    LEFT JOIN EmployeeNotesNextStep d on a.Employee = d.EmployeeID
+                                    LEFT JOIN EmployeeNotesNotCrosswalked d on a.Employee = d.EmployeeID
+                                    LEFT JOIN EmployeeNextSteps e on a.Employee = e.EmployeeID
                                     WHERE 
                                     a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     AND
@@ -861,7 +837,7 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.Status = row["Status"].ToString();
                         oEmployeeTable.SchoolName = row["SchoolName"].ToString();
                         oEmployeeTable.Notes = row["Notes"].ToString();
-                        oEmployeeTable.NextSteps = row["NextSteps"].ToString();
+                        oEmployeeTable.NextStep = row["NextStep"].ToString();
 
                         if (row["PositionID"].ToString().Length > 2)
                         {
@@ -904,7 +880,7 @@ namespace HuckeWEBAPI.Controllers
                                     LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
-									LEFT JOIN EmployeeNotesNextStep d on a.Employee = d.EmployeeID
+									LEFT JOIN EmployeeNotesCrossWalked d on a.Employee = d.EmployeeID
                                     WHERE
                                     a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     AND
@@ -1128,7 +1104,7 @@ namespace HuckeWEBAPI.Controllers
             return school;
         }
 
-        /*FROM ORIGINAL CODE BUT STILL GOOD TO USE */
+    
         [HttpPost]
         [Route("api/Crosswalk/AddOrUpdateCrosswalkRecord")]
         public bool AddOrUpdateCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
@@ -1357,9 +1333,11 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
+        
+        /*NOTES AND NEXT STEPS   */
         [HttpPost]
-        [Route("api/Crosswalk/AddUpdateEmployeeNotesNextStep")]
-        public bool AddUpdateEmployeeNotesNextStep([FromBody] NotesNextStep oNotesNextStepData)
+        [Route("api/Crosswalk/AddUpdateEmployeeNotesCrossWalked")]
+        public bool AddUpdateEmployeeNotesCrossWalked([FromBody] NotesNextStep oNotesNextStepData)
         {
             bool bSuccess = false;
 
@@ -1369,7 +1347,7 @@ namespace HuckeWEBAPI.Controllers
             switch (s_Environment)
             {
                 case "PROD":
-                 
+
                     connectionString = s_ConnectionString_CrossWalk_Local;
 
                     break;
@@ -1385,29 +1363,26 @@ namespace HuckeWEBAPI.Controllers
 
             string sql2 = "";
 
-            sql2 = @"IF NOT EXISTS(SELECT 1 FROM EmployeeNotesNextStep WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName)
+            sql2 = @"IF NOT EXISTS(SELECT 1 FROM EmployeeNotesCrossWalked WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName)
                                     BEGIN
-                                      INSERT INTO EmployeeNotesNextStep (
+                                      INSERT INTO EmployeeNotesCrossWalked (
                                             EmployeeID,
                                             Notes,
-                                            NextSteps ,
                                             SchoolName)
                                         VALUES(
                                             @EmployeeID,
                                             @Notes,
-                                            @NextSteps,
                                             @SchoolName)
                                     END
                                 ELSE
                                     BEGIN
-                                       UPDATE EmployeeNotesNextStep SET
-                                       Notes = @Notes ,
-                                       NextSteps = @NextSteps 
+                                       UPDATE EmployeeNotesCrossWalked SET
+                                       Notes = @Notes 
                                        WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName
                                     END";
 
 
-          
+
 
             using (SqlConnection CONN = new SqlConnection(connectionString))
             {
@@ -1417,7 +1392,6 @@ namespace HuckeWEBAPI.Controllers
                     SqlDataAdapter da = new SqlDataAdapter();
                     cmd.Parameters.AddWithValue("@EmployeeID", oNotesNextStepData.EmployeeID);
                     cmd.Parameters.AddWithValue("@Notes", oNotesNextStepData.Notes);
-                    cmd.Parameters.AddWithValue("@NextSteps", oNotesNextStepData.NextSteps);
                     cmd.Parameters.AddWithValue("@SchoolName", oNotesNextStepData.SchoolName);
 
                     da.SelectCommand = cmd;
@@ -1441,191 +1415,173 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
-       
 
-
-        [Route("api/Crosswalk/fetchCrosswalkChartData/")]
-        [HttpGet]
-        public List<CrossWalkChartData> fetchCrosswalkChartData()
+        [HttpPost]
+        [Route("api/Crosswalk/AddUpdateEmployeeNotesNotCrosswalked")]
+        public bool AddUpdateEmployeeNotesNotCrosswalked([FromBody] NotesNextStep oNotesNextStepData)
         {
-
-            CrossWalkChartData oCrosswalkChartData;
-            List<CrossWalkChartData> lstCrosswalkChartData = new List<CrossWalkChartData>();
-
-            var connectionString = "";
-
-            var SQLCommandText = @"SELECT count(CRecordID) as NumCrosswalked,[SchoolName] from CrossWalk
-                                  group by 
-                                  [SchoolName]";
-
-            switch (s_Environment)
-            {
-                case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-            }
-
-            int recordCount = 0;
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    //cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-
-                    foreach (DataRow row in ds.Tables[0].Rows)
-                    {
-                        oCrosswalkChartData = new CrossWalkChartData();
-                        oCrosswalkChartData.NumCrosswalked = int.Parse(row["NumCrosswalked"].ToString());
-                        oCrosswalkChartData.SchoolName = row["SchoolName"].ToString();
-                        lstCrosswalkChartData.Add(oCrosswalkChartData);
-                    }
-                }
-            }
-
-            return lstCrosswalkChartData;
-        }
-
-        [Route("api/Crosswalk/fetchCrosswalkChartDataByDivisionAndUnit/{area}")]
-        [HttpGet]
-        public List<CrossWalkChartData> fetchCrosswalkChartDataByDivisionAndUnit(string area)
-        {
-
-            string Division = "'" + area.Split('|')[0].ToString() + "'";
-            string Unit = "'" + area.Split('|')[1].ToString() + "'";
-
-            CrossWalkChartData oCrosswalkChartData;
-            List<CrossWalkChartData> lstCrosswalkChartData = new List<CrossWalkChartData>();
-
-            var connectionString = "";
-
-            var SQLCommandText = $"SELECT count(a.CRecordID) as NumCrosswalked,a.SchoolName,b.Division,b.Unit from CrossWalk a " +
-                                 $"LEFT JOIN [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] b on a.EmployeeID = b.Employee " +
-                                 $"WHERE b.Division = {Division} AND b.Unit = {Unit} group by a.SchoolName,b.Division,b.Unit";
-
-            switch (s_Environment)
-            {
-                case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk;
-
-                    break;
-            }
-
-            int recordCount = 0;
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    //cmd.Parameters.AddWithValue("@Division", Division);
-                    //cmd.Parameters.AddWithValue("@Unit", Unit);
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-
-                    foreach (DataRow row in ds.Tables[0].Rows)
-                    {
-                        oCrosswalkChartData = new CrossWalkChartData();
-                        oCrosswalkChartData.NumCrosswalked = int.Parse(row["NumCrosswalked"].ToString());
-                        oCrosswalkChartData.SchoolName = row["SchoolName"].ToString();
-                        lstCrosswalkChartData.Add(oCrosswalkChartData);
-                    }
-                }
-            }
-
-            return lstCrosswalkChartData;
-        }
-
-
-        /*NEXT STEPS*/
-        [Route("api/Crosswalk/fetchNextStepComplete/{SchoolName}")]
-        [HttpGet]
-        public int fetchNextStepComplete(string SchoolName)
-        {
+            bool bSuccess = false;
 
 
             var connectionString = "";
 
-            var SQLCommandText = @"SELECT count(*) As NotCrsWlkedVSNextSetp  --zero means that the record count does not match
-				               FROM 
-				               (
-					                     (SELECT x.TotalEmployees,y.TotalEmployeesWithNextStepRecord
-							              FROM 
-							              (SELECT count(a.Employee) As TotalEmployees
-							              FROM  [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
-							              WHERE
-							              a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b) 
-							              AND
-							              a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1) x ,
-							              (SELECT count(a.EmployeeID) As TotalEmployeesWithNextStepRecord FROM  EmployeeNotesNextStep a
-							              WHERE
-							              LEN(a.NextSteps) > 2 
-							              AND
-							              a.SchoolName = @SchoolName )y
-							              WHERE 
-							              x.TotalEmployees = y.TotalEmployeesWithNextStepRecord)
-				              )z";
+            switch (s_Environment)
+            {
+                case "PROD":
+
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+            string sql2 = "";
+
+            sql2 = @"IF NOT EXISTS(SELECT 1 FROM EmployeeNotesNotCrosswalked WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName)
+                                    BEGIN
+                                      INSERT INTO EmployeeNotesNotCrosswalked (
+                                            EmployeeID,
+                                            Notes,
+                                            SchoolName)
+                                        VALUES(
+                                            @EmployeeID,
+                                            @Notes,
+                                            @SchoolName)
+                                    END
+                                ELSE
+                                    BEGIN
+                                       UPDATE EmployeeNotesNotCrosswalked SET
+                                       Notes = @Notes 
+                                       WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName
+                                    END";
+
+
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@EmployeeID", oNotesNextStepData.EmployeeID);
+                    cmd.Parameters.AddWithValue("@Notes", oNotesNextStepData.Notes);
+                    cmd.Parameters.AddWithValue("@SchoolName", oNotesNextStepData.SchoolName);
+
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+
+            return bSuccess;
+        }
+
+        [HttpPost]
+        [Route("api/Crosswalk/AddUpdateEmployeeNextSteps")]
+        public bool AddUpdateEmployeeNextSteps([FromBody] NotesNextStep oNotesNextStepData)
+        {
+            bool bSuccess = false;
+
+
+            var connectionString = "";
 
             switch (s_Environment)
             {
                 case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk;
+
+                    connectionString = s_ConnectionString_CrossWalk_Local;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk;
+                    connectionString = s_ConnectionString_CrossWalk_Local;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk;
+                    connectionString = s_ConnectionString_CrossWalk_Local;
 
                     break;
             }
 
-            int recordCount = 0;
+            string sql2 = "";
+
+            sql2 = @"IF NOT EXISTS(SELECT 1 FROM EmployeeNextSteps WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName)
+                                    BEGIN
+                                      INSERT INTO EmployeeNextSteps (
+                                            EmployeeID,
+                                            NextStep,
+                                            SchoolName)
+                                        VALUES(
+                                            @EmployeeID,
+                                            @NextStep,
+                                            @SchoolName)
+                                    END
+                                ELSE
+                                    BEGIN
+                                       UPDATE EmployeeNextSteps SET
+                                       NextStep = @NextStep 
+                                       WHERE EmployeeID = @EmployeeID AND SchoolName = @SchoolName
+                                    END";
+
+
+
+
             using (SqlConnection CONN = new SqlConnection(connectionString))
             {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
                 {
                     cmd.CommandType = CommandType.Text;
                     SqlDataAdapter da = new SqlDataAdapter();
-                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    cmd.Parameters.AddWithValue("@EmployeeID", oNotesNextStepData.EmployeeID);
+                    cmd.Parameters.AddWithValue("@NextStep", oNotesNextStepData.NextStep);
+                    cmd.Parameters.AddWithValue("@SchoolName", oNotesNextStepData.SchoolName);
                     da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
 
-                    foreach (DataRow row in ds.Tables[0].Rows)
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
                     {
-                        recordCount = int.Parse(row["NotCrsWlkedVSNextSetp"].ToString());
+                        bSuccess = true;
                     }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
                 }
             }
 
-            return recordCount;
+            return bSuccess;
         }
+        /*END NOTES AND NEXT STEPS  */
 
+
+
+
+
+        #region NextStepAdmin
+        /*NEXT STEPS LIST ITEMS - ADMIN SCREEN*/
 
         [Route("api/Crosswalk/fetchNextStepListItems/")]
         [HttpGet]
@@ -1678,7 +1634,6 @@ namespace HuckeWEBAPI.Controllers
 
             return lstStepData;
         }
-
 
         [HttpPost]
         [Route("api/Crosswalk/AddOrUpdateNextStepRecordListItems/")]
@@ -1750,8 +1705,6 @@ namespace HuckeWEBAPI.Controllers
 
             return bSuccess;
         }
-
-        
 
         [Route("api/Crosswalk/DeleteNextStepRecordListItems/{stepID}")]
         [HttpGet]
@@ -1861,8 +1814,10 @@ namespace HuckeWEBAPI.Controllers
         }
 
         /*END NEXT STEPS*/
+        #endregion NextStepAdmin
 
 
+        #region Charting
         /*CHARTING DATA*/
         [Route("api/Crosswalk/fetchCrosswalkDashboardData/{SchoolName}")]
         [HttpGet]
@@ -2263,9 +2218,199 @@ namespace HuckeWEBAPI.Controllers
             return lstCrosswalkChartData;
         }
 
-        /*END  CHARTING DATA   */
 
+
+
+        [Route("api/Crosswalk/fetchCrosswalkChartData/")]
+        [HttpGet]
+        public List<CrossWalkChartData> fetchCrosswalkChartData()
+        {
+
+            CrossWalkChartData oCrosswalkChartData;
+            List<CrossWalkChartData> lstCrosswalkChartData = new List<CrossWalkChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT count(CRecordID) as NumCrosswalked,[SchoolName] from CrossWalk
+                                  group by 
+                                  [SchoolName]";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    //cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new CrossWalkChartData();
+                        oCrosswalkChartData.NumCrosswalked = int.Parse(row["NumCrosswalked"].ToString());
+                        oCrosswalkChartData.SchoolName = row["SchoolName"].ToString();
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
+        [Route("api/Crosswalk/fetchCrosswalkChartDataByDivisionAndUnit/{area}")]
+        [HttpGet]
+        public List<CrossWalkChartData> fetchCrosswalkChartDataByDivisionAndUnit(string area)
+        {
+
+            string Division = "'" + area.Split('|')[0].ToString() + "'";
+            string Unit = "'" + area.Split('|')[1].ToString() + "'";
+
+            CrossWalkChartData oCrosswalkChartData;
+            List<CrossWalkChartData> lstCrosswalkChartData = new List<CrossWalkChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = $"SELECT count(a.CRecordID) as NumCrosswalked,a.SchoolName,b.Division,b.Unit from CrossWalk a " +
+                                 $"LEFT JOIN [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] b on a.EmployeeID = b.Employee " +
+                                 $"WHERE b.Division = {Division} AND b.Unit = {Unit} group by a.SchoolName,b.Division,b.Unit";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    //cmd.Parameters.AddWithValue("@Division", Division);
+                    //cmd.Parameters.AddWithValue("@Unit", Unit);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new CrossWalkChartData();
+                        oCrosswalkChartData.NumCrosswalked = int.Parse(row["NumCrosswalked"].ToString());
+                        oCrosswalkChartData.SchoolName = row["SchoolName"].ToString();
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
+        /*END  CHARTING DATA   */
+        #endregion Charting
+
+        #region Acknowledgement
         /*Aknowledgment  */
+
+
+        /*THIS IS THE METHOD THAT HAS THE LOGIC THAT FETCHES COUNTS BEFORE PROCEDEING TO ADKNOWLEDGEMENT */
+        [Route("api/Crosswalk/fetchNextStepComplete/{SchoolName}")]
+        [HttpGet]
+        public int fetchNextStepComplete(string SchoolName)
+        {
+
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT count(*) As NotCrsWlkedVSNextSetp  --zero means that the record count does not match
+				               FROM 
+				               (
+					                     (SELECT x.TotalEmployees,y.TotalEmployeesWithNextStepRecord
+							              FROM 
+							              (SELECT count(a.Employee) As TotalEmployees
+							              FROM  [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+							              WHERE
+							              a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b) 
+							              AND
+							              a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1) x ,
+							              (SELECT count(a.EmployeeID) As TotalEmployeesWithNextStepRecord FROM  EmployeeNotesNextStep a
+							              WHERE
+							              LEN(a.NextSteps) > 2 
+							              AND
+							              a.SchoolName = @SchoolName )y
+							              WHERE 
+							              x.TotalEmployees = y.TotalEmployeesWithNextStepRecord)
+				              )z";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        recordCount = int.Parse(row["NotCrsWlkedVSNextSetp"].ToString());
+                    }
+                }
+            }
+
+            return recordCount;
+        }
+
+
+
 
         [HttpPost]
         [Route("api/Crosswalk/AddAknowledgementData/")]
@@ -2339,7 +2484,6 @@ namespace HuckeWEBAPI.Controllers
 
             return bSuccess;
         }
-
 
         [Route("api/Crosswalk/fetchAknowledgementEmployee/{Employee}")]
         [HttpGet]
@@ -2451,7 +2595,9 @@ namespace HuckeWEBAPI.Controllers
         }
 
         /*End Aknowledgment   */
+        #endregion Acknowledgement
 
+        #region ApplicationDateRange
         /*Application Date Range */
         [HttpPost]
         [Route("api/Crosswalk/AddApplicationDateRangeParameters")]
@@ -2691,6 +2837,7 @@ namespace HuckeWEBAPI.Controllers
         }
 
         /*END Application Date Range  */
+        #endregion ApplicationDateRange
 
 
         /*FETCH UNIT BASED ON DIVISION */
@@ -2750,9 +2897,7 @@ namespace HuckeWEBAPI.Controllers
 
             return lstUnitData;
         }
-        /*END FETCH UNIT BASED ON DIVISION */
-        #endregion UsingRealDataSchema
-
+      
 
 
 
@@ -3393,97 +3538,6 @@ namespace HuckeWEBAPI.Controllers
         }
 
 
-        /*
-        [Route("api/Crosswalk/fetchEmployeeDataBySchoolName/{SchoolName}")]
-        [HttpGet]
-        public List<EmployeeTable> fetchEmployeeDataBySchoolName(string SchoolName)
-        {
-            EmployeeTable oEmployeeTable;
-            List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
-
-            var connectionString = "";
-            string SQLCommandText = "";
-            string SQLCommandTextMultiline = @"SELECT e.EmployeeID,
-               e.SchoolName,
-	           e.EmployeeName,
-	           e.Role,
-	           e.Certification,
-	           CrossWalked = CASE
-
-                             WHEN c.CRecordID IS NOT NULL THEN 'YES' ELSE 'NO'
-
-                             END
-          FROM EmployeeTable e
-          left join
-          CrossWalk c
-          on e.EmployeeID = c.EmployeeID
-          WHERE
-          e.SchoolName = @SchoolName";
-
-            string SQLCommandTextMultiline2 = "SELECT e.EmployeeID, e.SchoolName, e.EmployeeName,e.Role,e.Certification,";
-            SQLCommandTextMultiline2 += " CrossWalked = CASE WHEN c.CRecordID IS NOT NULL THEN 'YES' ELSE 'NO' END ";
-            SQLCommandTextMultiline2 += "FROM EmployeeTable e left join CrossWalk c on e.EmployeeID = c.EmployeeID WHERE e.SchoolName = ";
-            SQLCommandTextMultiline2 += "'";
-            SQLCommandTextMultiline2 += SchoolName;
-            SQLCommandTextMultiline2 += "'";
-
-
-            switch (s_Environment)
-            {
-                case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
-                    SQLCommandText += "'";
-                    SQLCommandText += SchoolName;
-                    SQLCommandText += "'";
-                    break;
-                case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
-                    SQLCommandText += "'";
-                    SQLCommandText += SchoolName;
-                    SQLCommandText += "'";
-                    break;
-                default:
-                    connectionString = s_ConnectionString_CrossWalk;
-                    SQLCommandText = @"SELECT * FROM [EmployeeTable] WHERE SchoolName =  ";
-                    SQLCommandText += "'";
-                    SQLCommandText += SchoolName;
-                    SQLCommandText += "'";
-                    break;
-            }
-
-
-            using (SqlConnection CONN = new SqlConnection(connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(SQLCommandTextMultiline2, CONN))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    da.SelectCommand = cmd;
-                    DataSet ds = new DataSet();
-                    da.Fill(ds);
-                    foreach (DataRow row in ds.Tables[0].Rows)
-                    {
-                        oEmployeeTable = new EmployeeTable();
-                        oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
-                        oEmployeeTable.SchoolName = row["SchoolName"].ToString();
-
-                        oEmployeeTable.EmployeeName = row["EmployeeName"].ToString();
-                        oEmployeeTable.Role = row["Role"].ToString();
-                        oEmployeeTable.Certification = row["Certification"].ToString();
-                        oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
-
-
-                        lstEmployeeTableData.Add(oEmployeeTable);
-                        oEmployeeTable = null;
-                    }
-                }
-            }
-
-            return lstEmployeeTableData;
-        }
-        */
         [Route("api/Crosswalk/fetchEmployeeDataBySchoolName/{SchoolName}")]
         [HttpGet]
         public List<EmployeeTable> fetchEmployeeDataBySchoolName(string SchoolName)
@@ -3561,10 +3615,6 @@ namespace HuckeWEBAPI.Controllers
 
             return lstEmployeeTableData;
         }
-
-       
-
-       
 
         #endregion OriginalFakeData
 
