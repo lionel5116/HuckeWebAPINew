@@ -2477,10 +2477,31 @@ namespace HuckeWEBAPI.Controllers
         /*THIS IS THE METHOD THAT HAS THE LOGIC THAT FETCHES COUNTS BEFORE PROCEDEING TO ADKNOWLEDGEMENT */
         [Route("api/Crosswalk/fetchNextStepComplete/{SchoolName}")]
         [HttpGet]
-        public int fetchNextStepComplete(string SchoolName)
+        public bool fetchNextStepComplete(string SchoolName)
         {
 
+            bool bReadyForAcknowledge = false;
+            var NotesCount = 0;
+            var NextStepsCount = 0;
+            var NotCrosswalkedCount = 0;
 
+            NotCrosswalkedCount = fetchEmployeeNotCrossWalkedCount(SchoolName);
+            NotesCount = fetchEmployeeNotesNotCrosswalkedCount(SchoolName);
+            NextStepsCount = fetchEmployeeNextStepsCount(SchoolName);
+            
+            /*IF NOTES AND NEXTSTEP COUNTS ARE EQUAL */
+            if(NotesCount == NotCrosswalkedCount &&
+                NextStepsCount == NotCrosswalkedCount)
+            {
+                bReadyForAcknowledge = true;
+            }
+            else
+            {
+                bReadyForAcknowledge = false;
+            }
+            
+
+            /*
             var connectionString = "";
 
             var SQLCommandText = @"SELECT count(*) As NotCrsWlkedVSNextSetp  --zero means that the record count does not match
@@ -2537,10 +2558,12 @@ namespace HuckeWEBAPI.Controllers
                     }
                 }
             }
+            */
 
-            return recordCount;
+            return bReadyForAcknowledge;
         }
 
+        /*COUNTS BELOW */
         [Route("api/Crosswalk/fetchEmployeeNextStepsCount/{SchoolNamee}")]
         [HttpGet]
         public int fetchEmployeeNextStepsCount(string SchoolName)
@@ -2702,7 +2725,7 @@ namespace HuckeWEBAPI.Controllers
                     {
                         foreach (DataRow row in ds.Tables[0].Rows)
                         {
-                            _employeeCount = int.Parse(row["employeeCount"].ToString());
+                            _employeeCount = int.Parse(row["NotCrossWalkedCount"].ToString());
                         }
                     }
                     else
@@ -2715,6 +2738,7 @@ namespace HuckeWEBAPI.Controllers
 
             return _employeeCount;
         }
+        /*END COUNTS BELOW */
 
         [HttpPost]
         [Route("api/Crosswalk/AddAknowledgementData/")]
