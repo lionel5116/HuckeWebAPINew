@@ -61,8 +61,7 @@ namespace HuckeWEBAPI.Controllers
         }
 
 
-       
-      
+        #region PositionManagement
         [Route("api/Crosswalk/fetchAllPositionsBySchoolNameWOCrosswalk/{SchoolName}")]
         [HttpGet]
         public List<Positions> fetchAllPositionsBySchoolNameWOCrosswalk(string SchoolName)
@@ -337,9 +336,10 @@ namespace HuckeWEBAPI.Controllers
 
             return lstPositionData;
         }
+        #endregion PositionManagement
 
 
-       
+        #region FetchsAPRSchoolListingsCertETC
         [Route("api/Crosswalk/fetchAPRData/{SchoolName}")]
         [HttpGet]
         public List<APRReport> fetchAPRData(string SchoolName)
@@ -1103,14 +1103,18 @@ namespace HuckeWEBAPI.Controllers
 
             return school;
         }
+        #endregion FetchsAPRSchoolListingsCertETC
 
-    
+        #region CrosswalkRecordMgmt
         [HttpPost]
         [Route("api/Crosswalk/AddOrUpdateCrosswalkRecord")]
         public bool AddOrUpdateCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
         {
             bool bSuccess = false;
-
+            //CALL DELETE NEXT STEP AND NOTE RECORD TO KEEP CROSSWALK AND NEXT/NOTES IN SYNC
+            var EmpIDAndSchoolName = oCrosswalkEntryData.EmployeeID + '|' + oCrosswalkEntryData.SchoolName;
+            DeleteEmployeeNextSteps(EmpIDAndSchoolName);
+            DeleteEmployeeNotesNotCrosswalked(EmpIDAndSchoolName);
 
             var connectionString = "";
 
@@ -1194,7 +1198,7 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
-        /*FROM ORIGINAL CODE BUT STILL GOOD TO USE */
+  
         [HttpPost]
         [Route("api/Crosswalk/UpdateCrosswalkRecord")]
         public bool UpdateCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
@@ -1262,13 +1266,16 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
-        /*FROM ORIGINAL CODE BUT STILL GOOD TO USE */
+    
         [HttpPost]
         [Route("api/Crosswalk/DeleteCrosswalkRecord")]
         public bool DeleteCrosswalkRecord([FromBody] CrosswalkData oCrosswalkEntryData)
         {
             bool bSuccess = false;
-
+            //CALL DELETE NEXT STEP AND NOTE RECORD TO KEEP CROSSWALK AND NEXT/NOTES IN SYNC
+            var EmpIDAndSchoolName = oCrosswalkEntryData.EmployeeID + '|' + oCrosswalkEntryData.SchoolName;
+            DeleteEmployeeNextSteps(EmpIDAndSchoolName);
+            DeleteEmployeeNotesNotCrosswalked(EmpIDAndSchoolName);
 
             var connectionString = "";
 
@@ -1332,9 +1339,11 @@ namespace HuckeWEBAPI.Controllers
 
             return bSuccess;
         }
+        #endregion CrosswalkRecordMgmt
 
-        
-        /*NOTES AND NEXT STEPS   */
+
+        #region NotesNextStepsCWAndNCW
+        /*NOTES AND NEXT STEPS CROSSWALKED AND NOT CROSSWALKED  */
         [HttpPost]
         [Route("api/Crosswalk/AddUpdateEmployeeNotesCrossWalked")]
         public bool AddUpdateEmployeeNotesCrossWalked([FromBody] NotesNextStep oNotesNextStepData)
@@ -1414,8 +1423,6 @@ namespace HuckeWEBAPI.Controllers
 
             return bSuccess;
         }
-
-
         [HttpPost]
         [Route("api/Crosswalk/AddUpdateEmployeeNotesNotCrosswalked")]
         public bool AddUpdateEmployeeNotesNotCrosswalked([FromBody] NotesNextStep oNotesNextStepData)
@@ -1574,11 +1581,140 @@ namespace HuckeWEBAPI.Controllers
 
             return bSuccess;
         }
+        
+        
+        
+        [Route("api/Crosswalk/DeleteEmployeeNextSteps/{EmpIDAndSchoolName}")]
+        [HttpGet]
+        public bool DeleteEmployeeNextSteps(string EmpIDAndSchoolName)
+        {
+
+
+            string Employee = EmpIDAndSchoolName.Split('|')[0].ToString();
+            string SchoolName = EmpIDAndSchoolName.Split('|')[1].ToString();
+
+            bool bSuccess = false;
+            var connectionString = "";
+
+            var SQLCommandText = "DELETE EmployeeNextSteps WHERE EmployeeID = ";
+            SQLCommandText += Employee;
+            SQLCommandText += " AND ";
+            SQLCommandText += "SchoolName =  ";
+            SQLCommandText += "'";
+            SQLCommandText += SchoolName;
+            SQLCommandText += "'";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    //cmd.Parameters.AddWithValue("@Employee", int.Parse(Employee));
+                    //cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+            return bSuccess;
+        }
+
+        [Route("api/Crosswalk/DeleteEmployeeNotesNotCrosswalked/{EmpIDAndSchoolName}")]
+        [HttpGet]
+        public bool DeleteEmployeeNotesNotCrosswalked(string EmpIDAndSchoolName)
+        {
+
+            string Employee = EmpIDAndSchoolName.Split('|')[0].ToString();
+            string SchoolName = EmpIDAndSchoolName.Split('|')[1].ToString();
+
+            var SQLCommandText = "DELETE EmployeeNotesNotCrosswalked WHERE EmployeeID = ";
+            SQLCommandText += Employee;
+            SQLCommandText += " AND ";
+            SQLCommandText += "SchoolName =  ";
+            SQLCommandText += "'";
+            SQLCommandText += SchoolName;
+            SQLCommandText += "'";
+            bool bSuccess = false;
+            var connectionString = "";
+
+          
+
+     
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    //cmd.Parameters.AddWithValue("@Employee", int.Parse(Employee));
+                    //cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+            return bSuccess;
+        }
         /*END NOTES AND NEXT STEPS  */
-
-
-
-
+        #endregion NotesNextStepsCWAndNCW
 
         #region NextStepAdmin
         /*NEXT STEPS LIST ITEMS - ADMIN SCREEN*/
@@ -2408,9 +2544,6 @@ namespace HuckeWEBAPI.Controllers
 
             return recordCount;
         }
-
-
-
 
         [HttpPost]
         [Route("api/Crosswalk/AddAknowledgementData/")]
