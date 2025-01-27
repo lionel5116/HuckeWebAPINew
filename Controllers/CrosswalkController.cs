@@ -1666,10 +1666,6 @@ namespace HuckeWEBAPI.Controllers
             bool bSuccess = false;
             var connectionString = "";
 
-          
-
-     
-
             switch (s_Environment)
             {
                 case "PROD":
@@ -2543,6 +2539,181 @@ namespace HuckeWEBAPI.Controllers
             }
 
             return recordCount;
+        }
+
+        [Route("api/Crosswalk/fetchEmployeeNextStepsCount/{SchoolNamee}")]
+        [HttpGet]
+        public int fetchEmployeeNextStepsCount(string SchoolName)
+        {
+
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT count(EmployeeID) AS employeeCount FROM EmployeeNextSteps WHERE SchoolName = @SchoolName";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int _employeeCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+                        foreach (DataRow row in ds.Tables[0].Rows)
+                        {
+                            _employeeCount = int.Parse(row["employeeCount"].ToString());
+                        }
+                    }
+                    else
+                    {
+                        _employeeCount = 0;
+                    }
+
+                }
+            }
+
+            return _employeeCount;
+        }
+
+        [Route("api/Crosswalk/fetchEmployeeNotesNotCrosswalkedCount/{SchoolName}")]
+        [HttpGet]
+        public int fetchEmployeeNotesNotCrosswalkedCount(string SchoolName)
+        {
+
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT count(EmployeeID) AS employeeCount FROM EmployeeNotesNotCrosswalked WHERE SchoolName = @SchoolName";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int _employeeCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+                        foreach (DataRow row in ds.Tables[0].Rows)
+                        {
+                            _employeeCount = int.Parse(row["employeeCount"].ToString());
+                        }
+                    }
+                    else
+                    {
+                        _employeeCount = 0;
+                    }
+
+                }
+            }
+
+            return _employeeCount;
+        }
+
+        [Route("api/Crosswalk/fetchEmployeeNotesNotCrosswalkedCount/{SchoolName}")]
+        [HttpGet]
+        public int fetchEmployeeNotCrossWalkedCount(string SchoolName)
+        {
+
+
+            var connectionString = "";
+
+            var SQLCommandText = @" SELECT count(a.Employee) as NotCrossWalkedCount,
+                                    max(a.Org_Unit_Name) as SchoolName
+                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    WHERE 
+                                    a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                                    AND
+                                    a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int _employeeCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+                        foreach (DataRow row in ds.Tables[0].Rows)
+                        {
+                            _employeeCount = int.Parse(row["employeeCount"].ToString());
+                        }
+                    }
+                    else
+                    {
+                        _employeeCount = 0;
+                    }
+
+                }
+            }
+
+            return _employeeCount;
         }
 
         [HttpPost]
