@@ -633,7 +633,7 @@ namespace HuckeWEBAPI.Controllers
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                               a.Position_Name as [Role],
+	                              CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
                                    b.PositionID,
                                    b.Position as PositionName,
 	                               '' as Eligibility,
@@ -761,7 +761,7 @@ namespace HuckeWEBAPI.Controllers
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                               a.Position_Name as [Role],
+	                              CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
                                    b.PositionID,
                                     a.Status,
                                    b.Position as PositionName,
@@ -868,7 +868,9 @@ namespace HuckeWEBAPI.Controllers
             string SQLCommandText = "";
   
        
-            var SQLCommandTextNew = @" SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,a.Position_Name as [Role],a.Position,
+            var SQLCommandTextNew = @" SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,
+                                   CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+                                    a.Position,
                                     b.Position as PositionName,b.PositionID,'' as Eligibility,
                                     a.Status,
                                     c.[Qualification Text] As Certification,'' As Certification, b.CRecordID,b.Position,
