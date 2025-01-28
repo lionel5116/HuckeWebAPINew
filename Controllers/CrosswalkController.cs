@@ -1342,6 +1342,208 @@ namespace HuckeWEBAPI.Controllers
         #endregion CrosswalkRecordMgmt
 
 
+        #region CrosswalkEmployeeDiffSchool
+
+        [Route("api/Crosswalk/fetchEmployeeCrosswalkDiffSchool/{employeename}")]
+        [HttpGet]
+        public List<EmployeeTable> fetchEmployeeCrosswalkDiffSchool(string employeename)
+        {
+            EmployeeTable oEmployeeTable;
+            List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+
+
+            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
+                                   a.Org_Unit_Name as SchoolName,
+	                               a.Employee_Name as EmployeeName,
+	                               CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+                                   b.PositionID,
+                                    a.Status,
+                                   b.Position as PositionName,
+								   c.[Qualification Text] As Certification,
+                                   b.CRecordID,b.Position,
+                                   b.SchoolName as CWSchool,
+	                                CrossWalked = CASE
+                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    LEFT JOIN
+                                    (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
+                                   
+                                    WHERE 
+                                    --a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+									--AND
+                                    a.Employee_Name like ";
+//'% @employeename  %'";
+
+            SQLCommandTextNew += "'%";
+            SQLCommandTextNew += employeename;
+            SQLCommandTextNew += "%'";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+                 
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+                
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+                
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandTextNew, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    //cmd.Parameters.AddWithValue("@employeename", employeename);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oEmployeeTable = new EmployeeTable();
+                        oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
+                        oEmployeeTable.SchoolName = row["SchoolName"].ToString();
+                        oEmployeeTable.EmployeeName = row["EmployeeName"].ToString();
+                        oEmployeeTable.Role = row["Role"].ToString();
+                        oEmployeeTable.Certification = row["Certification"].ToString();
+                        oEmployeeTable.Position = row["Position"].ToString();
+                        oEmployeeTable.PositionName = row["PositionName"].ToString();
+                        oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
+                        oEmployeeTable.CWSchool = row["CWSchool"].ToString();
+
+
+
+                        if (row["PositionID"].ToString().Length > 2)
+                        {
+                            oEmployeeTable.PositionID = int.Parse(row["PositionID"].ToString());
+                        }
+                        else
+                        {
+                            oEmployeeTable.PositionID = 0;
+                        }
+
+                        lstEmployeeTableData.Add(oEmployeeTable);
+                        oEmployeeTable = null;
+                    }
+                }
+            }
+
+            return lstEmployeeTableData;
+        }
+
+
+        [Route("api/Crosswalk/fetchEmployeeCrosswalkDiffSchoolEmployeeID/{employeeID}")]
+        [HttpGet]
+        public List<EmployeeTable> fetchEmployeeCrosswalkDiffSchoolEmployeeID(string employeeID)
+        {
+            EmployeeTable oEmployeeTable;
+            List<EmployeeTable> lstEmployeeTableData = new List<EmployeeTable>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+
+
+
+            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
+                                   a.Org_Unit_Name as SchoolName,
+	                               a.Employee_Name as EmployeeName,
+	                               CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+                                   b.PositionID,
+                                    a.Status,
+                                   b.Position as PositionName,
+                                    b.SchoolName as CWSchool,
+								   c.[Qualification Text] As Certification,
+                                   b.CRecordID,b.Position,
+	                                CrossWalked = CASE
+                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    LEFT JOIN
+                                    (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
+                                   
+                                    WHERE 
+                                    --a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+									--AND
+                                   a.Employee =  ";
+            //'% @employeename  %'";
+
+         
+            SQLCommandTextNew += employeeID;
+        
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandTextNew, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    //cmd.Parameters.AddWithValue("@employeename", employeename);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oEmployeeTable = new EmployeeTable();
+                        oEmployeeTable.EmployeeID = row["EmployeeID"].ToString();
+                        oEmployeeTable.SchoolName = row["SchoolName"].ToString();
+                        oEmployeeTable.EmployeeName = row["EmployeeName"].ToString();
+                        oEmployeeTable.Role = row["Role"].ToString();
+                        oEmployeeTable.Certification = row["Certification"].ToString();
+                        oEmployeeTable.Position = row["Position"].ToString();
+                        oEmployeeTable.PositionName = row["PositionName"].ToString();
+                        oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
+                        oEmployeeTable.CWSchool = row["CWSchool"].ToString();
+
+                        if (row["PositionID"].ToString().Length > 2)
+                        {
+                            oEmployeeTable.PositionID = int.Parse(row["PositionID"].ToString());
+                        }
+                        else
+                        {
+                            oEmployeeTable.PositionID = 0;
+                        }
+
+                        lstEmployeeTableData.Add(oEmployeeTable);
+                        oEmployeeTable = null;
+                    }
+                }
+            }
+
+            return lstEmployeeTableData;
+        }
+
+
+        #endregion CrosswalkEmployeeDiffSchool
+
         #region NotesNextStepsCWAndNCW
         /*NOTES AND NEXT STEPS CROSSWALKED AND NOT CROSSWALKED  */
         [HttpPost]
