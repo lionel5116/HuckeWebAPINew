@@ -30,7 +30,11 @@ namespace HuckeWEBAPI.Models
 
         public string Notes { get; set; }
         public string NextStep { get; set; }
+        public string CWKey { get; set; }
+        public string CRossWalkDiff { get; set; }
         
+
+
 
     }
 }
