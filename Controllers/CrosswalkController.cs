@@ -572,17 +572,21 @@ namespace HuckeWEBAPI.Controllers
                                     b.SchoolName as CWSchool,
                                    b.PositionID,
                                    b.Position as PositionName,
-	                               '' as Eligibility,
+	                               d.Eligibility,
 								   c.[Qualification Text] As Certification,
                                    '' As Certification,
                                    b.CRecordID,b.Position,
 	                                CrossWalked = CASE
                                     WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
                                     FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
-                                   LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+									LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
-                                    WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
+                                    WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1
+                                    ORDER BY 
+                                    b.Position ASC
+									";
             
         
 
@@ -677,7 +681,7 @@ namespace HuckeWEBAPI.Controllers
                                    b.PositionID,
                                     a.Status,
                                    b.Position as PositionName,
-	                               '' as Eligibility,
+	                              d.Eligibility,
 								   c.[Qualification Text] As Certification,
                                    '' As Certification,
                                    b.CRecordID,b.Position,
@@ -687,6 +691,7 @@ namespace HuckeWEBAPI.Controllers
                                     e.NextStep
                                     FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                     LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
                                     LEFT JOIN EmployeeNotesNotCrosswalked d on a.Employee = d.EmployeeID
@@ -694,7 +699,7 @@ namespace HuckeWEBAPI.Controllers
                                     WHERE 
                                     a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     AND
-                                    a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
+                                    a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1 ORDER BY b.Position ";
 
 
             switch (s_Environment)
@@ -780,10 +785,11 @@ namespace HuckeWEBAPI.Controllers
             string SQLCommandText = "";
   
        
-            var SQLCommandTextNew = @" SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,
+            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,
                                    CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
                                     a.Position,
-                                    b.Position as PositionName,b.PositionID,'' as Eligibility,
+                                    b.Position as PositionName,b.PositionID,
+                                   d.Eligibility,
                                     a.Status,
                                     c.[Qualification Text] As Certification,'' As Certification, b.CRecordID,b.Position,
                                     CrossWalked = CASE
@@ -792,6 +798,7 @@ namespace HuckeWEBAPI.Controllers
 									FROM 
                                     [YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                     LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
 									LEFT JOIN EmployeeNotesCrossWalked d on a.Employee = d.EmployeeID
@@ -799,7 +806,7 @@ namespace HuckeWEBAPI.Controllers
                                     a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     AND
                                     a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1
-                                    ";
+                                     ORDER BY b.Position ";
 
             switch (s_Environment)
             {
@@ -1282,6 +1289,7 @@ namespace HuckeWEBAPI.Controllers
                                    b.PositionID,
                                     a.Status,
                                    b.Position as PositionName,
+                                    d.Eligibility,
 								   c.[Qualification Text] As Certification,
                                    b.CRecordID,b.Position,
                                    b.SchoolName as CWSchool,
@@ -1289,17 +1297,18 @@ namespace HuckeWEBAPI.Controllers
                                     WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
                                     FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                     LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
                                     WHERE 
                                     --a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
 									--AND
                                     a.Employee_Name like ";
-//'% @employeename  %'";
-
-            SQLCommandTextNew += "'%";
-            SQLCommandTextNew += employeename;
-            SQLCommandTextNew += "%'";
+                                    SQLCommandTextNew += "'%";
+                                    SQLCommandTextNew += employeename;
+                                    SQLCommandTextNew += "%'";
+                                    SQLCommandTextNew += " ";
+                                    SQLCommandTextNew += " ORDER BY b.Position ";
 
             switch (s_Environment)
             {
@@ -1387,10 +1396,12 @@ namespace HuckeWEBAPI.Controllers
                                     b.SchoolName as CWSchool,
 								   c.[Qualification Text] As Certification,
                                    b.CRecordID,b.Position,
+                                   d.Eligibility,
 	                                CrossWalked = CASE
                                     WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
                                     FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                     LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
                                    
@@ -1398,11 +1409,10 @@ namespace HuckeWEBAPI.Controllers
                                     --a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
 									--AND
                                    a.Employee =  ";
-            //'% @employeename  %'";
+                                   SQLCommandTextNew += employeeID;
+                                   SQLCommandTextNew += " ";
+                                   SQLCommandTextNew += " ORDER BY b.Position ";
 
-         
-            SQLCommandTextNew += employeeID;
-        
 
             switch (s_Environment)
             {
