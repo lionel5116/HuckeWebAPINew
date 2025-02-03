@@ -9,5 +9,8 @@ namespace HuckeWEBAPI.Models
     {
         public string SchoolName { get; set; }
         public string Status { get; set; }
+
+        public string fake_id { get; set; }
+
     }
 }

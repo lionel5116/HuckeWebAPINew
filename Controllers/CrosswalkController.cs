@@ -3004,8 +3004,10 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
 
-                  var SQLCommandText = @"SELECT Max(a.[Org_Unit_Name]) as SchoolName,
-                  Status = CASE WHEN max(b.CRecordID) IS NULL THEN 'NO RECORDS' ELSE 'STARTED' END
+                  var SQLCommandText = @"
+				 SELECT Max(a.[Org_Unit_Name]) as SchoolName,
+                  Status = CASE WHEN max(b.CRecordID) IS NULL THEN 'NO RECORDS' ELSE 'STARTED' END,
+				  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id
                   FROM [dbo].[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                   left join CrossWalk b on a.Employee = b.EmployeeID
                   left join AknowledgementTable c on a.Employee = c.[Employee]
@@ -3047,6 +3049,7 @@ namespace HuckeWEBAPI.Controllers
                         oSubmissionStatus = new SubmissionStatus();
                         oSubmissionStatus.SchoolName = row["SchoolName"].ToString();
                         oSubmissionStatus.Status = row["Status"].ToString();
+                        oSubmissionStatus.fake_id = row["fake_id"].ToString();
                         lstSubmissionStatus.Add(oSubmissionStatus);
                     }
                 }
@@ -3055,6 +3058,94 @@ namespace HuckeWEBAPI.Controllers
             return lstSubmissionStatus;
         }
 
+
+        [Route("api/Crosswalk/fetchDataMetricsCompletionStatus/")]
+        [HttpGet]
+        public List<ChartDataCompletionStatus> fetchDataMetricsCompletionStatus()
+        {
+
+            ChartDataCompletionStatus oCrosswalkChartData;
+            List<ChartDataCompletionStatus> lstCrosswalkChartData = new List<ChartDataCompletionStatus>();
+
+            var connectionString = "";
+
+
+            var SQLCommandText = @"WITH NotPlaced AS(
+                             SELECT COUNT(a.Employee) AS NotPlaced
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							WHERE a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b)
+							AND NES = 'NES'
+                        ),
+                        PrinciplePlacedCount AS(
+						  SELECT COUNT(a.Employee) AS PrinciplePlaced
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							WHERE a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b)
+							AND NES = 'NES'
+                        ),
+                        EligiblePlacedCount AS(
+						  SELECT COUNT(a.Employee) AS EligiblePlaced
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							WHERE a.Employee IN (SELECT b.EmployeeID FROM EligibilityTable b)
+							AND NES = 'NES'
+                        ),
+						 NotEligiblePlacedCount AS(
+						  SELECT COUNT(a.Employee) AS NotEligiblePlaced
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							WHERE a.Employee NOT IN (SELECT b.EmployeeID FROM EligibilityTable b)
+							AND NES = 'NES'
+                        )
+                        SELECT
+                            np.NotPlaced, 
+                            pp.PrinciplePlaced,
+	                        ep.EligiblePlaced,
+							ne.NotEligiblePlaced
+                        FROM
+                            NotPlaced np,
+                            PrinciplePlacedCount pp,
+	                        EligiblePlacedCount ep,
+							NotEligiblePlacedCount ne";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new ChartDataCompletionStatus();
+                        oCrosswalkChartData.NONPLACED = int.Parse(row["NotPlaced"].ToString());
+                        oCrosswalkChartData.PRINCIPLEPLACED = int.Parse(row["PrinciplePlaced"].ToString());
+                        oCrosswalkChartData.ELIGIBLEPLACED = int.Parse(row["EligiblePlaced"].ToString());
+                        oCrosswalkChartData.NONELIGIBLEPLACED = int.Parse(row["NotEligiblePlaced"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
 
         /*END  CHARTING DATA   */
         #endregion Charting
