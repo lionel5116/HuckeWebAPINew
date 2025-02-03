@@ -1065,7 +1065,8 @@ namespace HuckeWEBAPI.Controllers
 	                               a.Position_Name as [Role],
                                    b.PositionID,
                                    b.Position as PositionName,
-	                               '' as Eligibility,
+								   d.Eligibility,
+								   ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id,
 								   c.[Qualification Text] As Certification,
                                    '' As Certification,
                                    b.CRecordID,b.Position,
@@ -1073,6 +1074,7 @@ namespace HuckeWEBAPI.Controllers
                                     WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
                                     FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+								   LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
                                     WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
@@ -1135,6 +1137,7 @@ namespace HuckeWEBAPI.Controllers
                         {
                             oEmployeeTable.PositionID = 0;
                         }
+                        oEmployeeTable.fake_id = row["fake_id"].ToString();
 
                         lstEmployeeTableData.Add(oEmployeeTable);
                         oEmployeeTable = null;

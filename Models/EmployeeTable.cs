@@ -32,8 +32,8 @@ namespace HuckeWEBAPI.Models
         public string NextStep { get; set; }
         public string CWKey { get; set; }
         public string CRossWalkDiff { get; set; }
-        
 
+        public string fake_id { get; set; }
 
 
     }
