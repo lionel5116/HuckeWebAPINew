@@ -220,6 +220,8 @@
     <Compile Include="Models\Positions.cs" />
     <Compile Include="Models\PropertyInfo.cs" />
     <Compile Include="Models\SchoolListing.cs" />
+    <Compile Include="Models\SubmissionStatus.cs" />
+    <Compile Include="Models\tblMessage.cs" />
     <Compile Include="Models\tblNextStep.cs" />
     <Compile Include="Models\UnitsForDivision.cs" />
     <Compile Include="Models\VendorCROSE.cs" />
