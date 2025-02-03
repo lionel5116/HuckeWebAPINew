@@ -3004,11 +3004,14 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
 
-            var SQLCommandText = @" SELECT Max([Org_Unit_Name]) as  SchoolName, 'x' AS Status
-                              FROM [dbo].[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT]
-                              WHERE Org_Unit_Name IS NOT NULL AND [NES] = 'NES'
-                              group by Org_Unit_Name 
-                              order by Org_Unit_Name asc";
+                  var SQLCommandText = @"SELECT Max(a.[Org_Unit_Name]) as SchoolName,
+                  Status = CASE WHEN max(b.CRecordID) IS NULL THEN 'NO RECORDS' ELSE 'STARTED' END
+                  FROM [dbo].[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+                  left join CrossWalk b on a.Employee = b.EmployeeID
+                  left join AknowledgementTable c on a.Employee = c.[Employee]
+                  WHERE a.[Org_Unit_Name] IS NOT NULL AND [NES] = 'NES'
+                  group by a.Org_Unit_Name 
+                  order by a.Org_Unit_Name asc";
 
            
             switch (s_Environment)
