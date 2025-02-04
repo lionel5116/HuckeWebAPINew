@@ -971,7 +971,7 @@ namespace HuckeWEBAPI.Controllers
                               a.Status,
                               '' as CSS,
                               '' as Intent,
-                              ' ' as Eligibility,
+                              d.Eligibility,
 							  b.PositionID,
 							  b.Position  as CPosition,
 							  b.SchoolName,
@@ -983,6 +983,7 @@ namespace HuckeWEBAPI.Controllers
                                ON a.Employee = b.EmployeeID
                                 LEFT JOIN EMPLOYEE_CERT_TABLE c
                                ON a.Employee = c.Employee
+                                LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
                               WHERE Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
 
             switch (s_Environment)
@@ -3184,6 +3185,62 @@ namespace HuckeWEBAPI.Controllers
             return lstCrosswalkChartData;
         }
 
+
+
+        [Route("api/Crosswalk/fetchEligibilityChartData/")]
+        [HttpGet]
+        public List<NESEligibilityForChartData> fetchEligibilityChartData()
+        {
+
+            NESEligibilityForChartData oCrosswalkChartData;
+            List<NESEligibilityForChartData> lstCrosswalkChartData = new List<NESEligibilityForChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT max(Eligibility) As Status,count(a.EmployeeID) As Count
+                                    FROM EligibilityTable a
+                                    group by 
+                                    Eligibility";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new NESEligibilityForChartData();
+                        oCrosswalkChartData.Status = row["Status"].ToString();
+                        oCrosswalkChartData.Count = int.Parse(row["Count"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
         /*END  CHARTING DATA   */
         #endregion Charting
 
