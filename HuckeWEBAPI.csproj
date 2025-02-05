@@ -213,6 +213,7 @@
     <Compile Include="Models\CroseArgs.cs" />
     <Compile Include="Models\CrossWalkChartData.cs" />
     <Compile Include="Models\CrosswalkData.cs" />
+    <Compile Include="Models\CrossWalkPostionStatusChartData.cs" />
     <Compile Include="Models\EmployeeIDs.cs" />
     <Compile Include="Models\EmployeeTable.cs" />
     <Compile Include="Models\MainAccountInfo.cs" />

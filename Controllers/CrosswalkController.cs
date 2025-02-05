@@ -3241,6 +3241,84 @@ namespace HuckeWEBAPI.Controllers
 
             return lstCrosswalkChartData;
         }
+
+        [Route("api/Crosswalk/fetchCrosswalkPostionStatusChartData/")]
+        [HttpGet]
+        public List<CrossWalkPostionStatusChartData> fetchCrosswalkPostionStatusChartData()
+        {
+
+            CrossWalkPostionStatusChartData oCrosswalkChartData;
+            List<CrossWalkPostionStatusChartData> lstCrosswalkChartData = new List<CrossWalkPostionStatusChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"WITH 
+                                    CurrentStaffCount AS (
+                                        SELECT COUNT(a.Employee) AS [Current Staff]
+                                        FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                                        WHERE a.NES = 'NES'
+                                    ),
+                                    TransfersCount AS (
+                                        SELECT COUNT(a.Employee) AS Transfers
+                                        FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                                        WHERE a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b)
+                                        AND a.NES = 'NES'
+                                    ),
+                                    VacantCount AS (
+                                        SELECT COUNT(a.Employee) AS Vacant
+                                        FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                                        WHERE a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b)
+                                        AND a.NES = 'NES'
+                                    )
+                                    SELECT 'Current Staff' AS Category, COALESCE(cs.[Current Staff], 0) AS Count
+                                    FROM CurrentStaffCount cs
+                                    UNION ALL
+                                    SELECT 'Transfers' AS Category, COALESCE(t.Transfers, 0) AS Count
+                                    FROM TransfersCount t
+                                    UNION ALL
+                                    SELECT 'Vacant' AS Category, COALESCE(v.Vacant, 0) AS Count
+                                    FROM VacantCount v;
+                                    ";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new CrossWalkPostionStatusChartData();
+                        oCrosswalkChartData.Category = row["Category"].ToString();
+                        oCrosswalkChartData.Count = int.Parse(row["Count"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
         /*END  CHARTING DATA   */
         #endregion Charting
 
