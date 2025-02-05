@@ -141,9 +141,9 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
             string SQLCommandText = "";
-            
-         
 
+
+            /*
             SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
                               CrossWalked = CASE
 		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
@@ -157,7 +157,21 @@ namespace HuckeWEBAPI.Controllers
                                 AND LEN(a.Employee) > 1
                               order by
                               [Position]";
+            */
 
+            SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
+                              CrossWalked = CASE
+		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							  LEFT JOIN CrossWalk b on a.[Position_Name] = b.Position
+                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
+                              AND
+                              [Org_Unit_Name] =  @SchoolName
+							  AND
+							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                                AND LEN(a.Employee) > 1
+                              order by
+                              [Position]";
 
 
             switch (s_Environment)
