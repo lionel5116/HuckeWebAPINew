@@ -3463,14 +3463,18 @@ namespace HuckeWEBAPI.Controllers
             var NotesCount = 0;
             var NextStepsCount = 0;
             var NotCrosswalkedCount = 0;
+            var NotCrosswalkedCountExtraCheck = 0;
 
             NotCrosswalkedCount = fetchEmployeeNotCrossWalkedCount(SchoolName);
+            NotCrosswalkedCountExtraCheck = fetchEmployeeNotesNotCrosswalkedCountExtraCheck(SchoolName);
             NotesCount = fetchEmployeeNotesNotCrosswalkedCount(SchoolName);
             NextStepsCount = fetchEmployeeNextStepsCount(SchoolName);
-            
+            NotCrosswalkedCountExtraCheck = fetchEmployeeNotesNotCrosswalkedCountExtraCheck(SchoolName);
+
             /*IF NOTES AND NEXTSTEP COUNTS ARE EQUAL */
-            if(NotesCount == NotCrosswalkedCount &&
-                NextStepsCount == NotCrosswalkedCount)
+            if (NotesCount == NotCrosswalkedCount &&
+                NextStepsCount == NotCrosswalkedCount &&
+                NotCrosswalkedCountExtraCheck == NotCrosswalkedCount)
             {
                 bReadyForAcknowledge = true;
             }
@@ -3663,7 +3667,7 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
 
-            var SQLCommandText = @" SELECT count(a.Employee) as NotCrossWalkedCount,
+            var SQLCommandText = @"SELECT count(a.Employee) as NotCrossWalkedCount,
                                     max(a.Org_Unit_Name) as SchoolName
                                     FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                                     LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
@@ -3717,6 +3721,86 @@ namespace HuckeWEBAPI.Controllers
 
             return _employeeCount;
         }
+
+        [Route("api/Crosswalk/fetchEmployeeNotesNotCrosswalkedCountExtraCheck/{SchoolName}")]
+        [HttpGet]
+        public int fetchEmployeeNotesNotCrosswalkedCountExtraCheck(string SchoolName)
+        {
+
+
+            var connectionString = "";
+
+            /*
+            var SQLCommandText = @"SELECT count(a.Employee) as NotCrossWalkedCount,
+                                    max(a.Org_Unit_Name) as SchoolName
+                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    WHERE 
+                                    a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                                    AND
+                                    a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1";
+            */
+
+            var SQLCommandText = @"SELECT count(a.Employee)  as NotCrossWalkedCount,
+                                   max(a.Org_Unit_Name) as SchoolName
+                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    LEFT JOIN EmployeeNotesNotCrosswalked d on a.Employee = d.EmployeeID
+                                    LEFT JOIN EmployeeNextSteps e on a.Employee = e.EmployeeID
+                                    WHERE 
+                                    a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                                    AND
+                                    a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1 
+									AND
+									d.Notes IS NOT NULL 
+									AND e.NextStep  IS NOT NULL ";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int _employeeCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+                        foreach (DataRow row in ds.Tables[0].Rows)
+                        {
+                            _employeeCount = int.Parse(row["NotCrossWalkedCount"].ToString());
+                        }
+                    }
+                    else
+                    {
+                        _employeeCount = 0;
+                    }
+
+                }
+            }
+
+            return _employeeCount;
+        }
+
         /*END COUNTS BELOW */
 
         [HttpPost]
