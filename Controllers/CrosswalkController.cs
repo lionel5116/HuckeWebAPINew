@@ -3472,8 +3472,8 @@ namespace HuckeWEBAPI.Controllers
             NotCrosswalkedCountExtraCheck = fetchEmployeeNotesNotCrosswalkedCountExtraCheck(SchoolName);
 
             /*IF NOTES AND NEXTSTEP COUNTS ARE EQUAL */
-            if (NotesCount == NotCrosswalkedCount &&
-                NextStepsCount == NotCrosswalkedCount &&
+            if (NotesCount >= NotCrosswalkedCount &&
+                NextStepsCount >= NotCrosswalkedCount &&
                 NotCrosswalkedCountExtraCheck == NotCrosswalkedCount)
             {
                 bReadyForAcknowledge = true;
