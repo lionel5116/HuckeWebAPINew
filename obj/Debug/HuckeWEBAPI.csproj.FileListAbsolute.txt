@@ -360,4 +360,3 @@ C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\obj\Debug\HuckeWEBAP
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\obj\Debug\HuckeWEBAPI.csproj.CopyComplete
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\obj\Debug\HuckeWEBAPI.dll
 C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\obj\Debug\HuckeWEBAPI.pdb
-C:\DevProjects\Programming\VisualStudioProjects\HuckeWebAPI\obj\Debug\HuckeWEBAPI.csproj.AssemblyReference.cache

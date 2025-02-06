@@ -209,6 +209,7 @@
     <Compile Include="Models\ChartDataMainDBoard.cs" />
     <Compile Include="Models\ChartDataNESEligibility.cs" />
     <Compile Include="Models\ChartDataPositionStatus.cs" />
+    <Compile Include="Models\ChartDataSubmissionStatus.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\CroseArgs.cs" />
     <Compile Include="Models\CrossWalkChartData.cs" />

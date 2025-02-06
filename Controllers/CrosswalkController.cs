@@ -817,6 +817,8 @@ namespace HuckeWEBAPI.Controllers
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
                                     WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1" 
             */
+
+     
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
@@ -844,6 +846,36 @@ namespace HuckeWEBAPI.Controllers
                                     a.Employee IN(SELECT x.EmployeeID FROM CrossWalk x WHERE x.SchoolName = @SchoolName AND a.Org_Unit_Name != x.SchoolName)
                                     ORDER BY
                                     b.Position ASC";
+      
+            /*
+            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
+                                   a.Org_Unit_Name as SchoolName,
+	                               a.Employee_Name as EmployeeName,
+	                                CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+                                    CONCAT(a.Employee, b.PositionID) CWKey,
+                                    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id,
+                                   CRossWalkDiff = CASE
+                                    WHEN a.Org_Unit_Name != b.SchoolName THEN 'YES' ELSE 'NO' END,
+                                    b.SchoolName as CWSchool,
+                                   b.PositionID,
+                                   b.Position as PositionName,
+	                               d.Eligibility,
+								   c.[Qualification Text] As Certification,
+                                   '' As Certification,
+                                   b.CRecordID,b.Position,
+	                                CrossWalked = CASE
+                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                                    LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
+                                    LEFT JOIN
+                                    (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
+                                    WHERE a.Org_Unit_Name =  @SchoolName AND LEN(a.Employee) > 1
+                                    OR
+                                    a.Employee IN(SELECT x.EmployeeID FROM CrossWalk x WHERE x.SchoolName =  @SchoolName AND a.Org_Unit_Name != x.SchoolName)
+                                    ORDER BY
+                                    b.Position ASC";
+            */
 
 
             switch (s_Environment)
@@ -895,6 +927,7 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.PositionName = row["PositionName"].ToString();
                         oEmployeeTable.CrossWalked = row["CrossWalked"].ToString();
                         oEmployeeTable.Eligibility = row["Eligibility"].ToString();
+                        oEmployeeTable.CRossWalkDiff = row["CRossWalkDiff"].ToString();
                         if (row["PositionID"].ToString().Length > 2)
                         {
                             oEmployeeTable.PositionID = int.Parse(row["PositionID"].ToString());
@@ -1126,6 +1159,8 @@ namespace HuckeWEBAPI.Controllers
 
             string Division = "'" + area.Split('|')[0].ToString() + "'";
             string Unit = "'" + area.Split('|')[1].ToString() + "'";
+
+
 
             var connectionString = "";
             string SQLCommandText = "";
@@ -2638,6 +2673,84 @@ namespace HuckeWEBAPI.Controllers
                         oCrosswalkChartData.CURRENTSTAFF = int.Parse(row["CurrentStaff"].ToString());
                         oCrosswalkChartData.TRANSFERS = int.Parse(row["Transfers"].ToString());
                         oCrosswalkChartData.VACANT = int.Parse(row["Vacant"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
+
+        [Route("api/Crosswalk/fetchCrosswalkSubmissionStatus/")]
+        [HttpGet]
+        public List<ChartDataSubmissionStatus> fetchCrosswalkSubmissionStatus()
+        {
+
+            ChartDataSubmissionStatus oCrosswalkChartData;
+            List<ChartDataSubmissionStatus> lstCrosswalkChartData = new List<ChartDataSubmissionStatus>();
+
+            var connectionString = "";
+
+
+            var SQLCommandText = @"WITH 
+                        submittedCount AS (
+                            SELECT COUNT(a.Employee) AS Submitted
+                            FROM AknowledgementTable a
+                        ),
+                        InProgressCount AS (
+                            SELECT COUNT(a.Employee) AS InProgress
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                            WHERE a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b)
+                            AND a.NES = 'NES'
+                        ),
+                        NotStartedCount AS (
+                            SELECT COUNT(a.Employee) AS NotStarted
+                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                            WHERE a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b)
+                            AND a.NES = 'NES'
+                        )
+                        SELECT 'Submitted' AS Category, COALESCE(cs.Submitted, 0) AS Count
+                        FROM submittedCount cs
+                        UNION ALL
+                        SELECT 'InProgress' AS Category, COALESCE(t.InProgress, 0) AS Count
+                        FROM InProgressCount t
+                        UNION ALL
+                        SELECT 'NotStarted' AS Category, COALESCE(v.NotStarted, 0) AS Count
+                        FROM NotStartedCount v;";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new ChartDataSubmissionStatus();
+                        oCrosswalkChartData.Category = row["Category"].ToString();
+                        oCrosswalkChartData.Count = int.Parse(row["Count"].ToString());
                         lstCrosswalkChartData.Add(oCrosswalkChartData);
                     }
                 }
