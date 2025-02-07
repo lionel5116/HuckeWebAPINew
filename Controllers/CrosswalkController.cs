@@ -3201,13 +3201,16 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
 
-                  var SQLCommandText = @"
-				 SELECT Max(a.[Org_Unit_Name]) as SchoolName,
-                  Status = CASE WHEN max(b.CRecordID) IS NULL THEN 'NO RECORDS' ELSE 'STARTED' END,
+                  var SQLCommandText = @" SELECT Max(a.[Org_Unit_Name]) as SchoolName,
+                  Status = CASE WHEN max(b.CRecordID) IS NULL THEN 'NO RECORDS'
+				                WHEN max(a.[Org_Unit_Name]) = max(c.[Org_Unit_Name]) THEN 'SUBMITTED' 
+								 ELSE 'STARTED' 
+								END,
 				  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id
                   FROM [dbo].[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
                   left join CrossWalk b on a.Employee = b.EmployeeID
-                  left join AknowledgementTable c on a.Employee = c.[Employee]
+                  --left join AknowledgementTable c on a.Employee = c.[Employee]
+				  left join AknowledgementTable c on a.[Org_Unit_Name] = c.[Org_Unit_Name]
                   WHERE a.[Org_Unit_Name] IS NOT NULL AND [NES] = 'NES'
                   group by a.Org_Unit_Name 
                   order by a.Org_Unit_Name asc";
