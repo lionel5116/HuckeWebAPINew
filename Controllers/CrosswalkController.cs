@@ -329,7 +329,11 @@ namespace HuckeWEBAPI.Controllers
             SQLCommandTextSCOLLDIF = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                                CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+	                                  [Role] = CASE
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   ELSE
+								    CONCAT(a.Position, ' - ' + a.Position_Name)
+								   END,
                                     CONCAT(a.Employee, b.PositionID) CWKey,
                                     ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id,
                                    CRossWalkDiff = CASE
@@ -444,7 +448,11 @@ namespace HuckeWEBAPI.Controllers
             var SQLCommandTextNewx = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                              CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+	                               [Role] = CASE
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   ELSE
+								    CONCAT(a.Position, ' - ' + a.Position_Name)
+								   END,
                                  CONCAT(a.Employee,b.PositionID) CWKey,
                                    CRossWalkDiff = CASE
                                     WHEN a.Org_Unit_Name != b.SchoolName THEN 'YES' ELSE 'NO' END,
@@ -470,7 +478,11 @@ namespace HuckeWEBAPI.Controllers
             SQLCommandTextSCOLLDIF = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                               CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+	                                 [Role] = CASE
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   ELSE
+								    CONCAT(a.Position, ' - ' + a.Position_Name)
+								   END,
                                    CONCAT(a.Employee, b.PositionID) CWKey,
                                    CRossWalkDiff = CASE
                                    WHEN a.Org_Unit_Name != b.SchoolName THEN 'YES' ELSE 'NO' END,
@@ -583,7 +595,11 @@ namespace HuckeWEBAPI.Controllers
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                              CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+	                                [Role] = CASE
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   ELSE
+								    CONCAT(a.Position, ' - ' + a.Position_Name)
+								   END,
                                    b.PositionID,
                                     a.Status,
                                    b.Position as PositionName,
@@ -692,7 +708,11 @@ namespace HuckeWEBAPI.Controllers
 
 
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,
-                                   CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+                                     [Role] = CASE
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   ELSE
+								    CONCAT(a.Position, ' - ' + a.Position_Name)
+								   END,
                                     a.Position,
                                     b.Position as PositionName,b.PositionID,
                                     e.Eligibility,
@@ -822,7 +842,11 @@ namespace HuckeWEBAPI.Controllers
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                               CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+	                                [Role] = CASE
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   ELSE
+								    CONCAT(a.Position, ' - ' + a.Position_Name)
+								   END,
                                    CONCAT(a.Employee, b.PositionID) CWKey,
                                     ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id,
                                    CRossWalkDiff = CASE
@@ -1536,7 +1560,11 @@ namespace HuckeWEBAPI.Controllers
             var SQLCommandTextNew = @"  SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                               CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+	                                 [Role] = CASE
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   ELSE
+								    CONCAT(a.Position, ' - ' + a.Position_Name)
+								   END,
 
 								   CONCAT(a.Employee,b.PositionID) CWKey,
                                    CRossWalkDiff = CASE
@@ -1642,7 +1670,11 @@ namespace HuckeWEBAPI.Controllers
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                               CONCAT(a.Position, ' - ' + a.Position_Name) as [Role],
+	                                 [Role] = CASE
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   ELSE
+								    CONCAT(a.Position, ' - ' + a.Position_Name)
+								   END,
                                     CONCAT(a.Employee,b.PositionID) CWKey,
                                     CRossWalkDiff = CASE
                                    WHEN a.Org_Unit_Name != b.SchoolName THEN 'YES' ELSE 'NO' END,
@@ -4018,16 +4050,18 @@ namespace HuckeWEBAPI.Controllers
 
             string sql2 = "";
 
-            sql2 = @"IF NOT EXISTS(SELECT 1 FROM ApplicationDateRangeParameters WHERE Year = @Year)
+            sql2 = @"IF NOT EXISTS(SELECT 1 FROM ApplicationDateRangeParameters WHERE Year = @Year AND Type = @Type )
                                     BEGIN
                                       INSERT INTO ApplicationDateRangeParameters (
                                             StartDate,
                                             EndDate,
-                                            Year)
+                                            Year,
+                                            Type)
                                         VALUES(
                                             @StartDate,
                                             @EndDate,
-                                            @Year)
+                                            @Year,
+                                            @Type)
                                     END
                                ";
 
@@ -4043,7 +4077,8 @@ namespace HuckeWEBAPI.Controllers
                     cmd.Parameters.AddWithValue("@StartDate", oAppDateRange.StartDate);
                     cmd.Parameters.AddWithValue("@EndDate", oAppDateRange.EndDate);
                     cmd.Parameters.AddWithValue("@Year", oAppDateRange.Year);
-                    
+                    cmd.Parameters.AddWithValue("@Type", oAppDateRange.Type);
+
 
                     da.SelectCommand = cmd;
 
@@ -4131,7 +4166,7 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
 
-            var SQLCommandText = @"select StartDate,EndDate,Year from ApplicationDateRangeParameters";
+            var SQLCommandText = @"select rowID,StartDate,EndDate,Year,Type from ApplicationDateRangeParameters";
 
             switch (s_Environment)
             {
@@ -4165,6 +4200,8 @@ namespace HuckeWEBAPI.Controllers
                         oAppDateRange.StartDate = DateTime.Parse(row["StartDate"].ToString());
                         oAppDateRange.EndDate = DateTime.Parse(row["EndDate"].ToString());
                         oAppDateRange.Year = row["Year"].ToString();
+                        oAppDateRange.rowID = int.Parse(row["rowID"].ToString());
+                        oAppDateRange.Type = row["Type"].ToString();
                         lstDateRangeData.Add(oAppDateRange);
 
                     }
@@ -4174,15 +4211,15 @@ namespace HuckeWEBAPI.Controllers
             return lstDateRangeData;
         }
 
-        [Route("api/Crosswalk/DeleteAppDateRanges/{year}")]
+        [Route("api/Crosswalk/DeleteAppDateRanges/{rowID}")]
         [HttpGet]
-        public bool DeleteAppDateRanges(string year)
+        public bool DeleteAppDateRanges(int rowID)
         {
 
             bool bSuccess = false;
             var connectionString = "";
 
-            var SQLCommandText = @"DELETE ApplicationDateRangeParameters WHERE Year = @year";
+            var SQLCommandText = @"DELETE ApplicationDateRangeParameters WHERE rowID = @rowID";
 
             switch (s_Environment)
             {
@@ -4206,7 +4243,7 @@ namespace HuckeWEBAPI.Controllers
                 {
                     cmd.CommandType = CommandType.Text;
                     SqlDataAdapter da = new SqlDataAdapter();
-                    cmd.Parameters.AddWithValue("@year", year);
+                    cmd.Parameters.AddWithValue("@rowID", rowID);
                     da.SelectCommand = cmd;
 
                     CONN.Open();

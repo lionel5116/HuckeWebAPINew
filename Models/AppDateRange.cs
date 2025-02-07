@@ -10,5 +10,8 @@ namespace HuckeWEBAPI.Models
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Year { get; set; }
+        public string Type { get; set; }
+
+        public int rowID { get; set; }
     }
 }
