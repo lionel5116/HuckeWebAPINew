@@ -3365,7 +3365,7 @@ namespace HuckeWEBAPI.Controllers
                                    Eligibility
                                     UNION ALL
                                     SELECT 
-                                        'Null Status' AS Status, 
+                                        'Eligible - Not Defined' AS Status, 
                                         COUNT(a.Employee) AS Count
                                     FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
                                     LEFT JOIN EligibilityTable b ON a.Employee = b.EmployeeID
@@ -3429,7 +3429,7 @@ namespace HuckeWEBAPI.Controllers
                    Eligibility
             UNION ALL
             SELECT 
-                'Null Status' AS Status, 
+                'Eligible - Not Defined' AS Status, 
                 COUNT(a.Employee) AS Count
             FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
             LEFT JOIN EligibilityTable b ON a.Employee = b.EmployeeID
