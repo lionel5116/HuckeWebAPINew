@@ -3201,10 +3201,10 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
 
-                  var SQLCommandText = @" SELECT Max(a.[Org_Unit_Name]) as SchoolName,
-                  Status = CASE WHEN max(b.CRecordID) IS NULL THEN 'NO RECORDS'
+                  var SQLCommandText = @"SELECT Max(a.[Org_Unit_Name]) as SchoolName,
+                  Status = CASE WHEN max(b.CRecordID) IS NULL THEN 'NOT STARTED'
 				                WHEN max(a.[Org_Unit_Name]) = max(c.[Org_Unit_Name]) THEN 'SUBMITTED' 
-								 ELSE 'STARTED' 
+								 ELSE 'IN PROGRESS' 
 								END,
 				  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id
                   FROM [dbo].[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
@@ -3360,9 +3360,82 @@ namespace HuckeWEBAPI.Controllers
             var connectionString = "";
 
             var SQLCommandText = @"SELECT max(Eligibility) As Status,count(a.EmployeeID) As Count
-                                    FROM EligibilityTable a
-                                    group by 
-                                    Eligibility";
+                                   FROM EligibilityTable a
+                                   group by 
+                                   Eligibility
+                                    UNION ALL
+                                    SELECT 
+                                        'Null Status' AS Status, 
+                                        COUNT(a.Employee) AS Count
+                                    FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                                    LEFT JOIN EligibilityTable b ON a.Employee = b.EmployeeID
+                                    WHERE b.Eligibility IS NULL;
+    ";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new NESEligibilityForChartData();
+                        oCrosswalkChartData.Status = row["Status"].ToString();
+                        oCrosswalkChartData.Count = int.Parse(row["Count"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
+        [Route("api/Crosswalk/fetchDoughnutEligibilityCWCompletionStatusChartData/")]
+        [HttpGet]
+        public List<NESEligibilityForChartData> fetchDoughnutEligibilityCWCompletionStatusChartData()
+        {
+
+            NESEligibilityForChartData oCrosswalkChartData;
+            List<NESEligibilityForChartData> lstCrosswalkChartData = new List<NESEligibilityForChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT max(Eligibility) As Status,count(a.EmployeeID) As Count
+                   FROM EligibilityTable a
+	               INNER JOIN CrossWalk b on a.[EmployeeID] = b.EmployeeID
+                   group by 
+                   Eligibility
+            UNION ALL
+            SELECT 
+                'Null Status' AS Status, 
+                COUNT(a.Employee) AS Count
+            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+            LEFT JOIN EligibilityTable b ON a.Employee = b.EmployeeID
+            INNER JOIN CrossWalk c on a.Employee = c.EmployeeID
+            WHERE 
+            b.Eligibility IS NULL;";
 
             switch (s_Environment)
             {
@@ -3414,17 +3487,18 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
 
-            var SQLCommandText = @"WITH 
+            var SQLCommandText = @"  WITH 
                                     CurrentStaffCount AS (
                                         SELECT COUNT(a.Employee) AS [Current Staff]
                                         FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-                                        WHERE a.NES = 'NES'
+										JOIN CrossWalk b on a.Employee = b.[EmployeeID]
+                                        WHERE a.NES = 'NES' AND a.[Org_Unit_Name] = b.[SchoolName]
                                     ),
                                     TransfersCount AS (
-                                        SELECT COUNT(a.Employee) AS Transfers
+										SELECT COUNT(a.Employee) AS Transfers
                                         FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-                                        WHERE a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b)
-                                        AND a.NES = 'NES'
+										JOIN CrossWalk b on a.Employee = b.[EmployeeID]
+                                        WHERE a.NES = 'NES' AND a.[Org_Unit_Name] != b.[SchoolName]
                                     ),
                                     VacantCount AS (
                                         SELECT COUNT(a.Employee) AS Vacant
@@ -4169,7 +4243,7 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
 
-            var SQLCommandText = @"select rowID,StartDate,EndDate,Year,Type from ApplicationDateRangeParameters";
+            var SQLCommandText = @"select rowID,StartDate,EndDate,Year,Type,ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id from ApplicationDateRangeParameters";
 
             switch (s_Environment)
             {
@@ -4205,6 +4279,7 @@ namespace HuckeWEBAPI.Controllers
                         oAppDateRange.Year = row["Year"].ToString();
                         oAppDateRange.rowID = int.Parse(row["rowID"].ToString());
                         oAppDateRange.Type = row["Type"].ToString();
+                        oAppDateRange.fake_id = int.Parse(row["fake_id"].ToString());
                         lstDateRangeData.Add(oAppDateRange);
 
                     }
