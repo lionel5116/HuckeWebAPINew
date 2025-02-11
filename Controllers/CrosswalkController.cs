@@ -299,12 +299,12 @@ namespace HuckeWEBAPI.Controllers
 
 
 
-            /*
+            
             SQLCommandTextSCOLLDIF = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
 	                                  [Role] = CASE
-								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' <-> ' + b.[SchoolName])
 								   ELSE
 								    CONCAT(a.Position, ' - ' + a.Position_Name)
 								   END,
@@ -331,7 +331,9 @@ namespace HuckeWEBAPI.Controllers
                                     a.Employee IN(SELECT x.EmployeeID FROM CrossWalk x WHERE x.SchoolName =  @SchoolName AND a.Org_Unit_Name != x.SchoolName)
                                     ORDER BY
                                     b.Position ASC";
-              */
+              
+
+            /*
             SQLCommandTextSCOLLDIF = @"SELECT a.Employee as EmployeeID,
 	                               a.Employee_Name as EmployeeName,
 								   SchoolName = CASE
@@ -369,6 +371,7 @@ namespace HuckeWEBAPI.Controllers
                                     a.Employee IN(SELECT x.EmployeeID FROM CrossWalk x WHERE x.SchoolName =  @SchoolName AND a.Org_Unit_Name != x.SchoolName)
                                     ORDER BY
                                     b.Position ASC";
+            */
 
             switch (s_Environment)
             {
@@ -456,12 +459,12 @@ namespace HuckeWEBAPI.Controllers
             var SQLCommandTextSCOLLDIF = "";
 
 
-
+            /*
             var SQLCommandTextNewx = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
 	                               [Role] = CASE
-								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' <-> ' + b.[SchoolName])
 								   ELSE
 								    CONCAT(a.Position, ' - ' + a.Position_Name)
 								   END,
@@ -486,12 +489,13 @@ namespace HuckeWEBAPI.Controllers
                                     ORDER BY 
                                     b.Position ASC
 									";
+            */
 
             SQLCommandTextSCOLLDIF = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
 	                                 [Role] = CASE
-								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								    WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' <-> ' + b.[SchoolName])
 								   ELSE
 								    CONCAT(a.Position, ' - ' + a.Position_Name)
 								   END,
@@ -721,7 +725,7 @@ namespace HuckeWEBAPI.Controllers
 
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,a.Org_Unit_Name as SchoolName,a.Employee_Name as EmployeeName,
                                      [Role] = CASE
-								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								    WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' <-> ' + b.[SchoolName])
 								   ELSE
 								    CONCAT(a.Position, ' - ' + a.Position_Name)
 								   END,
@@ -850,12 +854,12 @@ namespace HuckeWEBAPI.Controllers
                                     WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1" 
             */
 
-            /*
+            
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
-                                   --a.Org_Unit_Name as SchoolName,
+                                   a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
 	                                [Role] = CASE
-								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								    WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' <-> ' + b.[SchoolName])
 								   ELSE
 								    CONCAT(a.Position, ' - ' + a.Position_Name)
 								   END,
@@ -883,7 +887,7 @@ namespace HuckeWEBAPI.Controllers
                                     ORDER BY
                                     b.Position ASC";
       
-            */
+            /*
             var SQLCommandTextNew = @" SELECT a.Employee as EmployeeID,
 	                               a.Employee_Name as EmployeeName,
 								   SchoolName = CASE
@@ -917,7 +921,7 @@ namespace HuckeWEBAPI.Controllers
                                     a.Employee IN(SELECT x.EmployeeID FROM CrossWalk x WHERE x.SchoolName = @SchoolName AND a.Org_Unit_Name != x.SchoolName)
                                     ORDER BY
                                     b.Position ASC";
-
+            */
 
             switch (s_Environment)
             {
@@ -1578,7 +1582,7 @@ namespace HuckeWEBAPI.Controllers
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
 	                                 [Role] = CASE
-								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' <-> ' + b.[SchoolName])
 								   ELSE
 								    CONCAT(a.Position, ' - ' + a.Position_Name)
 								   END,
@@ -1688,7 +1692,7 @@ namespace HuckeWEBAPI.Controllers
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
 	                                 [Role] = CASE
-								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' - ' + b.[SchoolName])
+								    WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' <-> ' + b.[SchoolName])
 								   ELSE
 								    CONCAT(a.Position, ' - ' + a.Position_Name)
 								   END,
@@ -3275,6 +3279,72 @@ namespace HuckeWEBAPI.Controllers
             return lstSubmissionStatus;
         }
 
+        [Route("api/Crosswalk/fetchSubmissionDataBySchoolName/{SchoolName}")]
+        [HttpGet]
+        public List<SubmissionStatus> fetchSubmissionDataBySchoolName(string SchoolName)
+        {
+
+            SubmissionStatus oSubmissionStatus;
+            List<SubmissionStatus> lstSubmissionStatus = new List<SubmissionStatus>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT Max(a.[Org_Unit_Name]) as SchoolName,
+                  Status = CASE WHEN max(b.CRecordID) IS NULL THEN 'NOT STARTED'
+				                WHEN max(a.[Org_Unit_Name]) = max(c.[Org_Unit_Name]) THEN 'SUBMITTED' 
+								 ELSE 'IN PROGRESS' 
+								END,
+				  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id
+                  FROM [dbo].[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
+                  left join CrossWalk b on a.Employee = b.EmployeeID
+				  left join AknowledgementTable c on a.[Org_Unit_Name] = c.[Org_Unit_Name]
+                  WHERE  a.Org_Unit_Name = @SchoolName
+                  group by a.Org_Unit_Name 
+                  order by a.Org_Unit_Name asc";
+
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oSubmissionStatus = new SubmissionStatus();
+                        oSubmissionStatus.SchoolName = row["SchoolName"].ToString();
+                        oSubmissionStatus.Status = row["Status"].ToString();
+                        oSubmissionStatus.fake_id = row["fake_id"].ToString();
+                        lstSubmissionStatus.Add(oSubmissionStatus);
+                    }
+                }
+            }
+
+            return lstSubmissionStatus;
+        }
 
         [Route("api/Crosswalk/fetchDataMetricsCompletionStatus/")]
         [HttpGet]
@@ -3429,6 +3499,65 @@ namespace HuckeWEBAPI.Controllers
             return lstCrosswalkChartData;
         }
 
+        [Route("api/Crosswalk/fetchDataEligibilityBySchool/{SchoolName}")]
+        [HttpGet]
+        public List<NESEligibilityForChartData> fetchDataEligibilityBySchool(string SchoolName)
+        {
+
+            NESEligibilityForChartData oCrosswalkChartData;
+            List<NESEligibilityForChartData> lstCrosswalkChartData = new List<NESEligibilityForChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"SELECT max(Eligibility) As Status,count(a.EmployeeID) As Count
+                                   FROM EligibilityTable a
+								   INNER JOIN YPBI_HPAOS_YPAOS_AUTH_POS_REPORT b ON a.EmployeeID = b.Employee
+								    WHERE b.[Org_Unit_Name] = @SchoolName
+                                   group by 
+                                   Eligibility;
+    ";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new NESEligibilityForChartData();
+                        oCrosswalkChartData.Status = row["Status"].ToString();
+                        oCrosswalkChartData.Count = int.Parse(row["Count"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
         [Route("api/Crosswalk/fetchDoughnutEligibilityCWCompletionStatusChartData/")]
         [HttpGet]
         public List<NESEligibilityForChartData> fetchDoughnutEligibilityCWCompletionStatusChartData()
@@ -3494,6 +3623,66 @@ namespace HuckeWEBAPI.Controllers
             return lstCrosswalkChartData;
         }
 
+        [Route("api/Crosswalk/fetchDoughnutEligibilityCWCompletionStatusChartDataBySchool/{SchoolName}")]
+        [HttpGet]
+        public List<NESEligibilityForChartData> fetchDoughnutEligibilityCWCompletionStatusChartDataBySchool(string SchoolName)
+        {
+
+            NESEligibilityForChartData oCrosswalkChartData;
+            List<NESEligibilityForChartData> lstCrosswalkChartData = new List<NESEligibilityForChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"   SELECT max(Eligibility) As Status,count(a.EmployeeID) As Count
+            FROM EligibilityTable a
+	        INNER JOIN CrossWalk b on a.[EmployeeID] = b.EmployeeID
+			 WHERE a.[SchoolName] = @SchoolName
+            group by 
+            Eligibility
+          ";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new NESEligibilityForChartData();
+                        oCrosswalkChartData.Status = row["Status"].ToString();
+                        oCrosswalkChartData.Count = int.Parse(row["Count"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
+
         [Route("api/Crosswalk/fetchCrosswalkPostionStatusChartData/")]
         [HttpGet]
         public List<CrossWalkPostionStatusChartData> fetchCrosswalkPostionStatusChartData()
@@ -3556,6 +3745,88 @@ namespace HuckeWEBAPI.Controllers
                 {
                     cmd.CommandType = CommandType.Text;
                     SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCrosswalkChartData = new CrossWalkPostionStatusChartData();
+                        oCrosswalkChartData.Category = row["Category"].ToString();
+                        oCrosswalkChartData.Count = int.Parse(row["Count"].ToString());
+                        lstCrosswalkChartData.Add(oCrosswalkChartData);
+                    }
+                }
+            }
+
+            return lstCrosswalkChartData;
+        }
+
+
+
+        [Route("api/Crosswalk/fetchCWPositonStatusBySchool/{SchoolName}")]
+        [HttpGet]
+        public List<CrossWalkPostionStatusChartData> fetchCWPositonStatusBySchool(string SchoolName)
+        {
+
+            CrossWalkPostionStatusChartData oCrosswalkChartData;
+            List<CrossWalkPostionStatusChartData> lstCrosswalkChartData = new List<CrossWalkPostionStatusChartData>();
+
+            var connectionString = "";
+
+            var SQLCommandText = @"WITH 
+                                    CurrentStaffCount AS (
+                                        SELECT COUNT(a.Employee) AS [Current Staff]
+                                        FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+										JOIN CrossWalk b on a.Employee = b.[EmployeeID]
+                                        WHERE a.[Org_Unit_Name] = @SchoolName
+                                    ),
+                                    TransfersCount AS (
+										SELECT COUNT(a.Employee) AS Transfers
+                                        FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+										JOIN CrossWalk b on a.Employee = b.[EmployeeID]
+                                        WHERE a.[Org_Unit_Name] = @SchoolName
+                                    ),
+                                    VacantCount AS (
+                                        SELECT COUNT(a.Employee) AS Vacant
+                                        FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                                        WHERE a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b)
+                                        AND a.[Org_Unit_Name] = @SchoolName
+                                    )
+                                    SELECT 'Current Staff' AS Category, COALESCE(cs.[Current Staff], 0) AS Count
+                                    FROM CurrentStaffCount cs
+                                    UNION ALL
+                                    SELECT 'Transfers' AS Category, COALESCE(t.Transfers, 0) AS Count
+                                    FROM TransfersCount t
+									UNION ALL
+                                    SELECT 'Vacant' AS Category, COALESCE(v.Vacant, 0) AS Count
+                                    FROM VacantCount v;
+                                    ";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            int recordCount = 0;
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
                     da.SelectCommand = cmd;
                     DataSet ds = new DataSet();
                     da.Fill(ds);
