@@ -1337,7 +1337,62 @@ namespace HuckeWEBAPI.Controllers
         }
 
 
-       
+        [Route("api/Crosswalk/fetchCERTDataLB/{employeeID}")]
+        [HttpGet]
+        public List<CertificationData> fetchCERTDataLB(string employeeID)
+        {
+            CertificationData oCERTData;
+            List<CertificationData> lstCERTData = new List<CertificationData>();
+
+            var connectionString = "";
+            string SQLCommandText = "";
+          
+            SQLCommandText = @"Select [Employee], EmployeeName,CERTIFICATIONS As Certification from EMPLOYEE_CERT_TABLE_LB
+                             WHERE [Employee] = @employeeID";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@employeeID", employeeID);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCERTData = new CertificationData();
+                        oCERTData.Employee = row["Employee"].ToString();
+                        oCERTData.EmployeeName = row["EmployeeName"].ToString();
+                        oCERTData.Certification = row["Certification"].ToString();
+
+                        lstCERTData.Add(oCERTData);
+                        oCERTData = null;
+                    }
+                }
+            }
+
+            return lstCERTData;
+        }
+
         #endregion FetchsAPRSchoolListingsCertETC
 
         #region CrosswalkRecordMgmt
