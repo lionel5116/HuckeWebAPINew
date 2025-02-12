@@ -73,13 +73,26 @@ namespace HuckeWEBAPI.Controllers
 
             var connectionString = "";
             string SQLCommandText = "";
-         
 
+            /*
             SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
                               CrossWalked = CASE
 		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
 							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
 							  LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
+                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
+                              AND
+                              [Org_Unit_Name] =  @SchoolName
+                                AND LEN(a.Employee) > 1
+                              order by
+                              [Position]";
+            */
+
+            SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
+                              CrossWalked = CASE
+		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							   LEFT JOIN CrossWalk b on a.Position = b.PositionID
                               WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
                               AND
                               [Org_Unit_Name] =  @SchoolName
@@ -4628,6 +4641,91 @@ namespace HuckeWEBAPI.Controllers
                 }
             }
             return bSuccess;
+        }
+
+        public AppDateRange fetcApplicationDateRangeByYearAndType(string year,string type)
+        {
+
+            AppDateRange oAppDateRange;
+            
+
+            var connectionString = "";
+
+            var SQLCommandText = @"select StartDate,EndDate,Year from ApplicationDateRangeParameters WHERE year = @year AND type = @type";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+            oAppDateRange = new AppDateRange();
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@type", type);
+                    cmd.Parameters.AddWithValue("@year", year);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        
+                        oAppDateRange.StartDate = DateTime.Parse(row["StartDate"].ToString());
+                        oAppDateRange.EndDate = DateTime.Parse(row["EndDate"].ToString());
+                        oAppDateRange.Year = row["Year"].ToString();
+                        oAppDateRange.Type = row["Year"].ToString();
+                    }
+                }
+            }
+
+            return oAppDateRange;
+        }
+
+        [Route("api/Crosswalk/checkSystemDateRange/{currentDate}")]
+        [HttpGet]
+        public bool checkSystemDateRange(string currentDate)
+        {
+      
+            DateTime _date = DateTime.Parse(currentDate);
+            //Console.WriteLine(_date);
+
+            int currentYear = DateTime.Now.Year;
+            bool ValidDateRange = false;
+            DateTime startDate;
+            DateTime endDate;
+
+            AppDateRange oDateRange = new AppDateRange();
+            oDateRange = fetcApplicationDateRangeByYearAndType(currentYear.ToString(), "SYSTEM");
+            startDate = oDateRange.StartDate;
+            endDate = oDateRange.EndDate;
+
+
+            if (_date >= startDate && _date <= endDate)
+            {
+                ValidDateRange = true;
+            }
+            else
+            {
+                ValidDateRange = false;
+            }
+
+
+            return ValidDateRange;
         }
 
         /*END Application Date Range  */
