@@ -3795,10 +3795,14 @@ namespace HuckeWEBAPI.Controllers
                                         WHERE a.[Org_Unit_Name] = @SchoolName
                                     ),
                                     TransfersCount AS (
-										SELECT COUNT(a.Employee) AS Transfers
+											SELECT COUNT(a.Employee) AS Transfers
                                         FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
 										JOIN CrossWalk b on a.Employee = b.[EmployeeID]
-                                        WHERE a.[Org_Unit_Name] = @SchoolName
+                                        WHERE 
+										a.NES = 'NES' 
+										AND a.[Org_Unit_Name] != b.[SchoolName]
+										AND
+										a.[Org_Unit_Name] = @SchoolName
                                     ),
                                     VacantCount AS (
                                         SELECT COUNT(a.Employee) AS Vacant
