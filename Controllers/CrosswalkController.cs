@@ -96,7 +96,7 @@ namespace HuckeWEBAPI.Controllers
                               WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
                               AND
                               [Org_Unit_Name] =  @SchoolName
-                                AND LEN(a.Employee) > 1
+                              --  AND LEN(a.Employee) > 1
                               order by
                               [Position]";
 
@@ -312,7 +312,7 @@ namespace HuckeWEBAPI.Controllers
 
 
 
-            
+            /*
             SQLCommandTextSCOLLDIF = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
@@ -345,29 +345,28 @@ namespace HuckeWEBAPI.Controllers
                                     ORDER BY
                                     b.Position ASC";
               
-
-            /*
+            */
             SQLCommandTextSCOLLDIF = @"SELECT a.Employee as EmployeeID,
+                                   a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-								   SchoolName = CASE
+	                               CONCAT(a.Position, ' - ' + a.Position_Name) AS Role,
 
-                                   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Org_Unit_Name, ' <-> ' + b.[SchoolName])
+                                   PositionName = CASE
+
+                                   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(b.Position,  ' <-> ' + b.[SchoolName])
 								   ELSE
 
-                                    a.Org_Unit_Name
+                                   b.Position
                                    END,
 
 
-                                  CONCAT(a.Position, ' - ' + a.Position_Name)  AS[Role],  
-                                  CONCAT(a.Employee, b.PositionID) CWKey,
-                                  ROW_NUMBER() OVER(ORDER BY(SELECT NULL)) AS fake_id,
-
-                                  CRossWalkDiff = CASE
+                                    CONCAT(a.Employee, b.PositionID) CWKey,
+                                    ROW_NUMBER() OVER(ORDER BY(SELECT NULL)) AS fake_id,
+                                 CRossWalkDiff = CASE
                                     WHEN a.Org_Unit_Name != b.SchoolName THEN 'YES' ELSE 'NO' END,
                                     b.SchoolName as CWSchool,
-
                                    b.PositionID,
-                                   b.Position as PositionName,
+                                   --b.Position as PositionName,
 	                               d.Eligibility,
 								   c.[Qualification Text] As Certification,
                                    '' As Certification,
@@ -379,12 +378,13 @@ namespace HuckeWEBAPI.Controllers
                                     LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
                                     LEFT JOIN
                                     (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
-                                    WHERE a.Org_Unit_Name =  @SchoolName AND LEN(a.Employee) > 1
+                                    WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1
                                     OR
-                                    a.Employee IN(SELECT x.EmployeeID FROM CrossWalk x WHERE x.SchoolName =  @SchoolName AND a.Org_Unit_Name != x.SchoolName)
+                                    a.Employee IN(SELECT x.EmployeeID FROM CrossWalk x WHERE x.SchoolName = @SchoolName AND a.Org_Unit_Name != x.SchoolName)
                                     ORDER BY
                                     b.Position ASC";
-            */
+
+
 
             switch (s_Environment)
             {
@@ -761,6 +761,8 @@ namespace HuckeWEBAPI.Controllers
                                     a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                                     AND
                                     a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1
+                                     OR
+                                    a.Employee IN(SELECT x.EmployeeID FROM CrossWalk x WHERE x.SchoolName =  @SchoolName AND a.Org_Unit_Name != x.SchoolName)
                                      ORDER BY b.Position ";
 
             switch (s_Environment)
@@ -845,44 +847,28 @@ namespace HuckeWEBAPI.Controllers
 
             var SchoolName = fetchSchoolNameByEmployeeID(employeeID);
 
-            /*
-            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
-                                   a.Org_Unit_Name as SchoolName,
-	                               a.Employee_Name as EmployeeName,
-	                               a.Position_Name as [Role],
-                                   b.PositionID,
-                                   b.Position as PositionName,
-								   d.Eligibility,
-								   ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id,
-								   c.[Qualification Text] As Certification,
-                                   '' As Certification,
-                                   b.CRecordID,b.Position,
-	                                CrossWalked = CASE
-                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
-                                   LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
-								   LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
-                                    LEFT JOIN
-                                    (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
-                                    WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1" 
-            */
+           
 
             
             var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
-	                                [Role] = CASE
-								    WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Position, ' - ' + a.Position_Name + ' <-> ' + b.[SchoolName])
+                                   
+                                   CONCAT(a.Position, ' - ' + a.Position_Name) AS Role,
+
+                                   PositionName = CASE
+								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(b.Position,  ' <-> ' + b.[SchoolName])
 								   ELSE
-								    CONCAT(a.Position, ' - ' + a.Position_Name)
+								   b.Position
 								   END,
+
                                    CONCAT(a.Employee, b.PositionID) CWKey,
                                     ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id,
                                    CRossWalkDiff = CASE
                                    WHEN a.Org_Unit_Name != b.SchoolName THEN 'YES' ELSE 'NO' END,
                                     b.SchoolName as CWSchool,
                                    b.PositionID,
-                                   b.Position as PositionName,
+                                   --b.Position as PositionName,
 	                               d.Eligibility,
 								   c.[Qualification Text] As Certification,
                                    '' As Certification,
@@ -900,41 +886,8 @@ namespace HuckeWEBAPI.Controllers
                                     ORDER BY
                                     b.Position ASC";
       
-            /*
-            var SQLCommandTextNew = @" SELECT a.Employee as EmployeeID,
-	                               a.Employee_Name as EmployeeName,
-								   SchoolName = CASE
-								   WHEN b.[SchoolName] <> a.Org_Unit_Name THEN CONCAT(a.Org_Unit_Name, ' <-> ' + b.[SchoolName])
-								   ELSE
-								    a.Org_Unit_Name
-								   END,
-
-				                  CONCAT(a.Position, ' - ' + a.Position_Name)  AS [Role],  
-                                  CONCAT(a.Employee, b.PositionID) CWKey,
-                                  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id,
-
-                                   CRossWalkDiff = CASE
-                                   WHEN a.Org_Unit_Name != b.SchoolName THEN 'YES' ELSE 'NO' END,
-                                    b.SchoolName as CWSchool,
-                                   b.PositionID,
-                                   b.Position as PositionName,
-	                               d.Eligibility,
-								   c.[Qualification Text] As Certification,
-                                   '' As Certification,
-                                   b.CRecordID,b.Position,
-	                                CrossWalked = CASE
-                                    WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-                                    FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
-                                    LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
-                                    LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
-                                    LEFT JOIN
-                                    (SELECT[Employee], CERTIFICATIONS as [Qualification Text]  FROM EMPLOYEE_CERT_TABLE) c on a.Employee = c.Employee
-                                    WHERE a.Org_Unit_Name = @SchoolName AND LEN(a.Employee) > 1
-                                    OR
-                                    a.Employee IN(SELECT x.EmployeeID FROM CrossWalk x WHERE x.SchoolName = @SchoolName AND a.Org_Unit_Name != x.SchoolName)
-                                    ORDER BY
-                                    b.Position ASC";
-            */
+           
+            
 
             switch (s_Environment)
             {
