@@ -1096,7 +1096,99 @@ namespace HuckeWEBAPI.Controllers
             return lstAPRReportData;
         }
 
-       
+        [Route("api/Crosswalk/fetchAPRDataMultiSchools/{SchoolNameList}")]
+        [HttpGet]
+        public List<APRReport> fetchAPRDataMultiSchools(string SchoolNameList)
+        {
+            APRReport oAPRReport;
+            List<APRReport> lstAPRReportData = new List<APRReport>();
+            string formattedValues = string.Join(",", SchoolNameList.Split(',').Select(n => $"'{n.Trim()}'"));
+
+            //string sql = $"SELECT * FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT WHERE Org_Unit_Name IN ({formattedValues})";
+            //Console.WriteLine(sql);
+
+            string sql2 = $@"SELECT a.NES,
+                              a.Employee,
+                              a.Employee_Name,
+                              a.Position,
+                              Position_Name,
+                              a.Job,
+                              a.Job_Name,
+                              a.Status,
+                              '' as CSS,
+                              '' as Intent,
+                              d.Eligibility,
+							  b.PositionID,
+							  b.Position as CPosition,
+							  b.SchoolName,
+							   CrossWalked = CASE
+                               WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END,
+							   c.CERTIFICATIONS as Certification
+                              FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                               LEFT JOIN CrossWalk b
+                               ON a.Employee = b.EmployeeID
+                                LEFT JOIN EMPLOYEE_CERT_TABLE c
+                               ON a.Employee = c.Employee
+                                LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
+                              WHERE Org_Unit_Name IN ({formattedValues}) AND LEN(a.Employee) > 1";
+
+
+
+            var connectionString = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk;
+
+                    break;
+            }
+
+          
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    //cmd.Parameters.AddWithValue("@formattedValues", formattedValues);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oAPRReport = new APRReport();
+                        oAPRReport.Employee = row["Employee"].ToString();
+                        oAPRReport.Employee_Name = row["Employee_Name"].ToString();
+                        oAPRReport.CSS = row["CSS"].ToString();
+                        oAPRReport.Position = row["Position"].ToString();
+                        oAPRReport.Position_Name = row["Position_Name"].ToString();
+                        oAPRReport.Intent = row["Intent"].ToString();
+                        oAPRReport.Eligibility = row["Eligibility"].ToString();
+                        oAPRReport.Certification = row["Certification"].ToString();
+                        oAPRReport.CrossWalked = row["CrossWalked"].ToString();
+                        oAPRReport.PositionID = row["PositionID"].ToString();
+                        oAPRReport.CPosition = row["CPosition"].ToString();
+                        oAPRReport.SchoolName = row["SchoolName"].ToString();
+
+                        lstAPRReportData.Add(oAPRReport);
+                        oAPRReport = null;
+                    }
+                }
+            }
+
+            return lstAPRReportData;
+        }
+
         [Route("api/Crosswalk/fetchSchoolListingsRealData/")]
         [HttpGet]
         public List<SchoolListing> fetchSchoolListingsRealData()
