@@ -182,7 +182,7 @@ namespace HuckeWEBAPI.Controllers
                               [Org_Unit_Name] =  @SchoolName
 							  AND
 							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
-                                AND LEN(a.Employee) > 1
+                              --  AND LEN(a.Employee) > 1
                               order by
                               [Position]";
 
@@ -2638,50 +2638,60 @@ namespace HuckeWEBAPI.Controllers
                                   group by 
                                   [SchoolName]";
 
+
             /*
-            var SQLCommandText = @"WITH AssignedCount AS(
-                            SELECT COUNT(PositionID) AS ASSIGNED
-                            FROM CrossWalk
-                            WHERE SchoolName = @SchoolName
-                        ),
-                        NotStartedCount AS(
-                            SELECT COUNT(a.Position) AS NOTSTARTED
-                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-                            LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
-                            WHERE LEN([Org_Unit_Name]) > 2
-                              AND NES = 'NES'
-                              AND[Org_Unit_Name] = @SchoolName
-                              AND a.Employee NOT IN(
-                                  SELECT b.EmployeeID
-                                  FROM CrossWalk b
-                                  WHERE b.EmployeeID IS NOT NULL
-                              )
-                              AND LEN(a.Employee) > 1
-                        ),
-                        InProgressCount AS(
-                            SELECT COUNT(a.Position) AS INPROGRESS
-                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-                            LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
-                            WHERE LEN([Org_Unit_Name]) > 2
-                              AND NES = 'NES'
-                              AND[Org_Unit_Name] = @SchoolName
-                              AND a.Employee NOT IN(
-                                  SELECT b.EmployeeID
-                                  FROM CrossWalk b
-                                  WHERE b.EmployeeID IS NOT NULL
-                              )
-                              AND LEN(a.Employee) > 1
+              var SQLCommandText = @"WITH AssignedCount AS(
+                      SELECT COUNT(PositionID) AS ASSIGNED
+                      FROM CrossWalk
+                      WHERE SchoolName  = @SchoolName
+                  ),
+                  NotStartedCount AS(
+                      SELECT COUNT(a.Position) AS NOTSTARTED
+                      FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                      LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
+                      WHERE LEN([Org_Unit_Name]) > 2
+                        AND NES = 'NES'
+                        AND[Org_Unit_Name] = @SchoolName
+                        AND a.Employee NOT IN(
+                            SELECT b.EmployeeID
+                            FROM CrossWalk b
+                            WHERE b.EmployeeID IS NOT NULL
                         )
-                        SELECT
-                            ac.ASSIGNED, 
-                            nsc.NOTSTARTED,
-	                        ipc.INPROGRESS
-                        FROM
-                            AssignedCount ac,
-                            NotStartedCount nsc,
-	                        InProgressCount ipc";
-            */
-                    var SQLCommandText = @"WITH AssignedCount AS(
+                        AND LEN(a.Employee) > 1
+                  ),
+                  InProgressCount AS(
+                      SELECT COUNT(a.Position) AS INPROGRESS
+                      FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+                      LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
+                      WHERE LEN([Org_Unit_Name]) > 2
+                        AND NES = 'NES'
+                        AND[Org_Unit_Name] = @SchoolName
+                        AND a.Employee NOT IN(
+                            SELECT b.EmployeeID
+                            FROM CrossWalk b
+                            WHERE b.EmployeeID IS NOT NULL
+                        )
+                        AND LEN(a.Employee) > 1
+                  ),
+                  SubmittedCount AS(
+                     SELECT COUNT(PositionID) AS SUBMITTED
+                      FROM CrossWalk
+                      WHERE SchoolName= @SchoolName
+                  )
+                  SELECT
+                      ac.ASSIGNED, 
+                      nsc.NOTSTARTED,
+                      ipc.INPROGRESS,
+                      scnt.SUBMITTED
+                  FROM
+                      AssignedCount ac,
+                      NotStartedCount nsc,
+                      InProgressCount ipc,
+                      SubmittedCount scnt";
+
+      */
+
+            var SQLCommandText = @"WITH AssignedCount AS(
                             SELECT COUNT(PositionID) AS ASSIGNED
                             FROM CrossWalk
                             WHERE SchoolName  = @SchoolName
@@ -2698,7 +2708,7 @@ namespace HuckeWEBAPI.Controllers
                                   FROM CrossWalk b
                                   WHERE b.EmployeeID IS NOT NULL
                               )
-                              AND LEN(a.Employee) > 1
+                             -- AND LEN(a.Employee) > 1
                         ),
                         InProgressCount AS(
                             SELECT COUNT(a.Position) AS INPROGRESS
@@ -2712,7 +2722,7 @@ namespace HuckeWEBAPI.Controllers
                                   FROM CrossWalk b
                                   WHERE b.EmployeeID IS NOT NULL
                               )
-                              AND LEN(a.Employee) > 1
+                             -- AND LEN(a.Employee) > 1
                         ),
                         SubmittedCount AS(
                            SELECT COUNT(PositionID) AS SUBMITTED
@@ -4915,7 +4925,7 @@ namespace HuckeWEBAPI.Controllers
                               [Org_Unit_Name] =  @SchoolName
 							  AND
 							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
-                               AND LEN(a.Employee) > 1
+                             --  AND LEN(a.Employee) > 1
                               order by
                               [Position]";
 
