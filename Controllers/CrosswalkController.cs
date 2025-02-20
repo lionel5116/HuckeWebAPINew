@@ -2694,21 +2694,17 @@ namespace HuckeWEBAPI.Controllers
             var SQLCommandText = @"WITH AssignedCount AS(
                             SELECT COUNT(PositionID) AS ASSIGNED
                             FROM CrossWalk
-                            WHERE SchoolName  = @SchoolName
+                            WHERE SchoolName= @SchoolName
                         ),
                         NotStartedCount AS(
-                            SELECT COUNT(a.Position) AS NOTSTARTED
-                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-                            LEFT JOIN CrossWalk b ON a.[Position_Name] = b.Position
-                            WHERE LEN([Org_Unit_Name]) > 2
-                              AND NES = 'NES'
-                              AND[Org_Unit_Name] = @SchoolName
-                              AND a.Employee NOT IN(
-                                  SELECT b.EmployeeID
-                                  FROM CrossWalk b
-                                  WHERE b.EmployeeID IS NOT NULL
-                              )
-                             -- AND LEN(a.Employee) > 1
+                           SELECT  Count(a.Position) as NOTSTARTED
+							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							  LEFT JOIN CrossWalk b on a.[Position_Name] = b.Position
+                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
+                              AND
+                              [Org_Unit_Name] = @SchoolName
+							  AND
+							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                         ),
                         InProgressCount AS(
                             SELECT COUNT(a.Position) AS INPROGRESS
@@ -2727,7 +2723,7 @@ namespace HuckeWEBAPI.Controllers
                         SubmittedCount AS(
                            SELECT COUNT(PositionID) AS SUBMITTED
                             FROM CrossWalk
-                            WHERE SchoolName= @SchoolName
+                            WHERE SchoolName= 'Alcott ES'
                         )
                         SELECT
                             ac.ASSIGNED, 
