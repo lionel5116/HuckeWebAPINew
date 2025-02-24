@@ -1691,7 +1691,7 @@ namespace HuckeWEBAPI.Controllers
 
 
 
-            var SQLCommandTextNew = @"  SELECT a.Employee as EmployeeID,
+            var SQLCommandTextNew = @"SELECT a.Employee as EmployeeID,
                                    a.Org_Unit_Name as SchoolName,
 	                               a.Employee_Name as EmployeeName,
 	                                 [Role] = CASE
@@ -1769,6 +1769,7 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.CWSchool = row["CWSchool"].ToString();
                         oEmployeeTable.CWKey = row["CWKey"].ToString();
                         oEmployeeTable.CRossWalkDiff = row["CRossWalkDiff"].ToString();
+                        oEmployeeTable.Eligibility = row["Eligibility"].ToString();
 
                         if (row["PositionID"].ToString().Length > 2)
                         {
