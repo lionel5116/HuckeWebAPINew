@@ -4505,6 +4505,38 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
+        [Route("api/Crosswalk/checkAcknowledgmentDateRange/{currentDate}")]
+        [HttpGet]
+        public bool checkAcknowledgmentDateRange(string currentDate)
+        {
+
+            DateTime _date = DateTime.Parse(currentDate);
+        
+
+            int currentYear = DateTime.Now.Year;
+            bool ValidDateRange = false;
+            DateTime startDate;
+            DateTime endDate;
+
+            AppDateRange oDateRange = new AppDateRange();
+            oDateRange = fetcApplicationDateRangeByYearAndType(currentYear.ToString(), "ACKNOWLEDGEMT");
+            startDate = oDateRange.StartDate;
+            endDate = oDateRange.EndDate;
+
+
+            if (_date >= startDate && _date <= endDate)
+            {
+                ValidDateRange = true;
+            }
+            else
+            {
+                ValidDateRange = false;
+            }
+
+
+            return ValidDateRange;
+        }
+
         /*End Aknowledgment   */
         #endregion Acknowledgement
 
