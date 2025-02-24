@@ -1878,6 +1878,7 @@ namespace HuckeWEBAPI.Controllers
                         oEmployeeTable.CWSchool = row["CWSchool"].ToString();
                         oEmployeeTable.CWKey = row["CWKey"].ToString();
                         oEmployeeTable.CRossWalkDiff = row["CRossWalkDiff"].ToString();
+                        oEmployeeTable.Eligibility = row["Eligibility"].ToString();
 
                         if (row["PositionID"].ToString().Length > 2)
                         {
