@@ -74,20 +74,8 @@ namespace HuckeWEBAPI.Controllers
             var connectionString = "";
             string SQLCommandText = "";
 
-            /*
-            SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
-                              CrossWalked = CASE
-		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-							  LEFT JOIN CrossWalk b on a.Employee = b.EmployeeID
-                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
-                              AND
-                              [Org_Unit_Name] =  @SchoolName
-                                AND LEN(a.Employee) > 1
-                              order by
-                              [Position]";
-            */
 
+            /*
             SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
                               CrossWalked = CASE
 		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
@@ -97,6 +85,20 @@ namespace HuckeWEBAPI.Controllers
                               AND
                               [Org_Unit_Name] =  @SchoolName
                               --  AND LEN(a.Employee) > 1
+                              order by
+                              [Position]";
+            */
+            
+            /*FIX BELOW TO ACCOUNT FOR KEYDATE */
+            SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
+                              CrossWalked = CASE
+		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							   LEFT JOIN CrossWalk b on a.Position = b.PositionID
+                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
+                              AND
+                              [Org_Unit_Name] =  @SchoolName
+                              AND a.KeyDate >= CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01'
                               order by
                               [Position]";
 
@@ -156,22 +158,8 @@ namespace HuckeWEBAPI.Controllers
             string SQLCommandText = "";
 
 
-            /*
-            SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
-                              CrossWalked = CASE
-		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
-							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-							  LEFT JOIN CrossWalk b on a.[Position_Name] = b.Position
-                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
-                              AND
-                              [Org_Unit_Name] =  @SchoolName
-							  AND
-							  a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b WHERE b.EmployeeID IS NOT NULL)
-                                AND LEN(a.Employee) > 1
-                              order by
-                              [Position]";
-            */
 
+            /*
             SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
                               CrossWalked = CASE
 		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
@@ -185,7 +173,22 @@ namespace HuckeWEBAPI.Controllers
                               --  AND LEN(a.Employee) > 1
                               order by
                               [Position]";
+            */
 
+            /*FIX FOR KEYDATE */
+            SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
+                              CrossWalked = CASE
+		                      WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END
+							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							  LEFT JOIN CrossWalk b on a.[Position_Name] = b.Position
+                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
+                              AND
+                              [Org_Unit_Name] =  @SchoolName
+							  AND
+							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
+                              AND a.KeyDate >= CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01'
+                              order by
+                              [Position]";
 
             switch (s_Environment)
             {
@@ -4713,6 +4716,81 @@ namespace HuckeWEBAPI.Controllers
             return bSuccess;
         }
 
+        [HttpPost]
+        [Route("api/Crosswalk/EditApplicationDateRangeParameters")]
+        public bool EditApplicationDateRangeParameters([FromBody] AppDateRange oAppDateRange)
+        {
+            bool bSuccess = false;
+
+
+            var connectionString = "";
+
+            switch (s_Environment)
+            {
+                case "PROD":
+
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                case "DEV":
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+                default:
+                    connectionString = s_ConnectionString_CrossWalk_Local;
+
+                    break;
+            }
+
+            string sql2 = "";
+
+            sql2 = @"BEGIN
+                           UPDATE ApplicationDateRangeParameters
+                            SET 
+                                StartDate = @StartDate,
+                                EndDate = @EndDate,
+                                Year = @Year,
+                                Type = @Type
+                            WHERE rowID = @rowID;
+                                    END";
+
+
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@StartDate", oAppDateRange.StartDate);
+                    cmd.Parameters.AddWithValue("@EndDate", oAppDateRange.EndDate);
+                    cmd.Parameters.AddWithValue("@Year", oAppDateRange.Year);
+                    cmd.Parameters.AddWithValue("@Type", oAppDateRange.Type);
+                    cmd.Parameters.AddWithValue("@rowID", oAppDateRange.rowID);
+
+
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+
+            return bSuccess;
+        }
+
         [Route("api/Crosswalk/fetcApplicationDateRange/{year}")]
         [HttpGet]
         public List<AppDateRange> fetcApplicationDateRange(string year)
@@ -5045,7 +5123,7 @@ namespace HuckeWEBAPI.Controllers
                               [Org_Unit_Name] =  @SchoolName
 							  AND
 							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
-                             --  AND LEN(a.Employee) > 1
+                             AND a.KeyDate >= CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01'
                               order by
                               [Position]";
 
