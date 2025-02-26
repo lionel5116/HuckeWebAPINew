@@ -1115,6 +1115,7 @@ namespace HuckeWEBAPI.Controllers
                               a.Employee_Name,
                               a.Position,
                               Position_Name,
+                              CONCAT(a.Position, ' - ' + a.Position_Name) AS Role,
                               a.Job,
                               a.Job_Name,
                               a.Status,
@@ -1123,7 +1124,9 @@ namespace HuckeWEBAPI.Controllers
                               d.Eligibility,
 							  b.PositionID,
 							  b.Position as CPosition,
-							  b.SchoolName,
+                                CONCAT( b.PositionID, ' - ' + b.Position) AS FCWP,
+							 -- b.SchoolName,
+                                a.Org_Unit_Name as SchoolName,
 							   CrossWalked = CASE
                                WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END,
 							   c.CERTIFICATIONS as Certification
@@ -1182,6 +1185,8 @@ namespace HuckeWEBAPI.Controllers
                         oAPRReport.PositionID = row["PositionID"].ToString();
                         oAPRReport.CPosition = row["CPosition"].ToString();
                         oAPRReport.SchoolName = row["SchoolName"].ToString();
+                        oAPRReport.FCWP = row["FCWP"].ToString(); 
+                        oAPRReport.Role = row["Role"].ToString();
 
                         lstAPRReportData.Add(oAPRReport);
                         oAPRReport = null;
@@ -1203,8 +1208,10 @@ namespace HuckeWEBAPI.Controllers
             string sql2 = $@"SELECT a.NES,
                               a.Employee,
                               a.Employee_Name,
+                              a.Org_Unit_Name as SchoolName,
                               a.Position,
                               Position_Name,
+                              CONCAT(a.Position, ' - ' + a.Position_Name) AS Role,
                               a.Job,
                               a.Job_Name,
                               a.Status,
@@ -1213,7 +1220,8 @@ namespace HuckeWEBAPI.Controllers
                               d.Eligibility,
 							  b.PositionID,
 							  b.Position as CPosition,
-							  b.SchoolName,
+                                CONCAT( b.PositionID, ' - ' + b.Position) AS FCWP,
+							  --b.SchoolName,
 							   CrossWalked = CASE
                                WHEN b.CRecordID IS NULL THEN 'NO' ELSE 'YES' END,
 							   c.CERTIFICATIONS as Certification
@@ -1272,6 +1280,8 @@ namespace HuckeWEBAPI.Controllers
                         oAPRReport.PositionID = row["PositionID"].ToString();
                         oAPRReport.CPosition = row["CPosition"].ToString();
                         oAPRReport.SchoolName = row["SchoolName"].ToString();
+                        oAPRReport.Role = row["Role"].ToString();
+                        oAPRReport.FCWP = row["FCWP"].ToString();
 
                         lstAPRReportData.Add(oAPRReport);
                         oAPRReport = null;

@@ -20,6 +20,8 @@ namespace HuckeWEBAPI.Models
         public string SchoolName { get; set; }
         public string CrossWalked { get; set; }
         public string Certification { get; set; }
+        public string Role { get; set; }
+        public string FCWP { get; set; }
 
     }
 }
