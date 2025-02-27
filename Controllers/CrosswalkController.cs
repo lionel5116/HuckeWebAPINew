@@ -1136,7 +1136,8 @@ namespace HuckeWEBAPI.Controllers
                                 LEFT JOIN EMPLOYEE_CERT_TABLE c
                                ON a.Employee = c.Employee
                                 LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
-                              WHERE Org_Unit_Name IN ({formattedValues}) AND LEN(a.Employee) > 1";
+                              WHERE Org_Unit_Name IN ({formattedValues}) AND LEN(a.Employee) > 1
+                               ORDER BY a.Org_Unit_Name ASC";
 
 
 
@@ -1231,7 +1232,8 @@ namespace HuckeWEBAPI.Controllers
                                 LEFT JOIN EMPLOYEE_CERT_TABLE c
                                ON a.Employee = c.Employee
                                 LEFT JOIN EligibilityTable d on a.Employee = d.EmployeeID
-                              WHERE LEN(a.Employee) > 1";
+                              WHERE LEN(a.Employee) > 1
+                              ORDER BY a.Org_Unit_Name ASC";
 
 
 
