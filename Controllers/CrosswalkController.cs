@@ -98,7 +98,7 @@ namespace HuckeWEBAPI.Controllers
                               WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
                               AND
                               [Org_Unit_Name] =  @SchoolName
-                              AND a.KeyDate >= CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01'
+                              AND a.SeperationDate >= '9999-12-31'
                               order by
                               [Position]";
 
