@@ -16,13 +16,8 @@ namespace HuckeWEBAPI.Controllers
     public class CrosswalkController : ApiController
     {
         public string s_ConnectionString_CrossWalk = ConfigurationManager.AppSettings["ConnectionString_CrossWalk_PROD"].ToString();
-        public string s_ConnectionString_CrossWalk_Local = ConfigurationManager.AppSettings["ConnectionString_CrossWalk_Local"].ToString();
         public string _connStringDataWarehouse_EDB = ConfigurationManager.AppSettings["_DataWarehouseEDB"].ToString();
         public string s_Environment = ConfigurationManager.AppSettings["Environment"].ToString();
-
-      
-
-       
 
         public static DataSet GetDataSetCommon(string sql, string s_Provider, string s_ConnString)
 
@@ -1562,15 +1557,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     //use local as the same for connection string while in test
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -1652,15 +1647,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     //use local as the same for connection string while in test
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -1722,15 +1717,15 @@ namespace HuckeWEBAPI.Controllers
             switch (s_Environment)
             {
                 case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -2137,15 +2132,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
 
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -2216,15 +2211,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
 
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -2296,15 +2291,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
 
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -2560,15 +2555,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     //use local as the same for connection string while in test
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -3395,15 +3390,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     //use local as the same for connection string while in test
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -4443,15 +4438,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
                     //use local as the same for connection string while in test
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -4662,15 +4657,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
 
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -4741,15 +4736,15 @@ namespace HuckeWEBAPI.Controllers
             {
                 case "PROD":
 
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -5595,15 +5590,15 @@ namespace HuckeWEBAPI.Controllers
             switch (s_Environment)
             {
                 case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -5916,15 +5911,15 @@ namespace HuckeWEBAPI.Controllers
             switch (s_Environment)
             {
                 case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
@@ -6009,15 +6004,15 @@ namespace HuckeWEBAPI.Controllers
             switch (s_Environment)
             {
                 case "PROD":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 case "DEV":
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
                 default:
-                    connectionString = s_ConnectionString_CrossWalk_Local;
+                    connectionString = s_ConnectionString_CrossWalk;
 
                     break;
             }
