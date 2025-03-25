@@ -93,8 +93,8 @@ namespace HuckeWEBAPI.Controllers
                               WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
                               AND
                               [Org_Unit_Name] =  @SchoolName
-                             -- AND a.SeperationDate >= '9999-12-31'        
-                             AND a.KeyDate >= CAST(YEAR(GETDATE()) AS VARCHAR) + '-01-09'
+                                  
+                              AND a.KeyDate = CAST(CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01' AS DATE) --added 03/25/2025 for obsolete
                               order by
                               [Position]";
 
@@ -182,7 +182,8 @@ namespace HuckeWEBAPI.Controllers
                               [Org_Unit_Name] =  @SchoolName
 							  AND
 							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
-                              AND a.KeyDate >= CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01'
+                             
+                                AND a.KeyDate = CAST(CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01' AS DATE) --added 03/25/2025 for obsolete
                               order by
                               [Position]";
 
@@ -2806,7 +2807,8 @@ namespace HuckeWEBAPI.Controllers
                               WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
                               AND
                               [Org_Unit_Name] = @SchoolName
-                              AND a.KeyDate >= CAST(YEAR(GETDATE()) AS VARCHAR) + '-01-09'  --added 03/22/2023 for obsolete
+                          
+                                AND a.KeyDate = CAST(CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01' AS DATE) --added 03/25/2025 for obsolete
 							  AND
 							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
                         ),
@@ -2817,7 +2819,7 @@ namespace HuckeWEBAPI.Controllers
                             WHERE LEN([Org_Unit_Name]) > 2
                               AND NES = 'NES'
                               AND[Org_Unit_Name] = @SchoolName
-                              AND a.KeyDate >= CAST(YEAR(GETDATE()) AS VARCHAR) + '-01-09'  --added 03/22/2023 for obsolete
+                              AND a.KeyDate = CAST(CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01' AS DATE) --added 03/25/2025 for obsolete
                               AND a.Employee NOT IN(
                                   SELECT b.EmployeeID
                                   FROM CrossWalk b
@@ -5133,7 +5135,7 @@ namespace HuckeWEBAPI.Controllers
                               [Org_Unit_Name] =  @SchoolName
 							  AND
 							  a.Position NOT IN (SELECT b.PositionID FROM CrossWalk b WHERE b.Position IS NOT NULL)
-                             AND a.KeyDate >= CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01'
+                             AND a.KeyDate = CAST(CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01' AS DATE) --added 03/25/2025 for obsolete
                               order by
                               [Position]";
 
