@@ -2978,16 +2978,24 @@ namespace HuckeWEBAPI.Controllers
                             FROM AknowledgementTable a
                         ),
                         InProgressCount AS (
-                            SELECT COUNT(a.Employee) AS InProgress
-                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-                            WHERE a.Employee IN (SELECT b.EmployeeID FROM CrossWalk b)
-                            AND a.NES = 'NES'
+							SELECT COUNT(DISTINCT a.Org_Unit) AS InProgress
+							FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							WHERE EXISTS (
+								SELECT 1
+								FROM CrossWalk b
+								WHERE b.SchoolName = a.Org_Unit_Name
+							)
+							AND a.NES = 'NES'
                         ),
                         NotStartedCount AS (
-                            SELECT COUNT(a.Employee) AS NotStarted
-                            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
-                            WHERE a.Employee NOT IN (SELECT b.EmployeeID FROM CrossWalk b)
-                            AND a.NES = 'NES'
+							SELECT COUNT(DISTINCT a.Org_Unit) AS NotStarted
+							FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							WHERE NOT EXISTS (
+								SELECT 1
+								FROM CrossWalk b
+								WHERE b.SchoolName = a.Org_Unit_Name
+							)
+							AND a.NES = 'NES'
                         )
                         SELECT 'Submitted' AS Category, COALESCE(cs.Submitted, 0) AS Count
                         FROM submittedCount cs
