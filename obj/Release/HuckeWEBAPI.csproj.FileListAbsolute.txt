@@ -472,3 +472,4 @@ C:\DevProjects\Programming\React\HuckeWebAPINew\obj\Release\HuckeWEBAPI.csproj.C
 C:\DevProjects\Programming\React\HuckeWebAPINew\obj\Release\HuckeWEBAPI.csproj.CopyComplete
 C:\DevProjects\Programming\React\HuckeWebAPINew\obj\Release\HuckeWEBAPI.dll
 C:\DevProjects\Programming\React\HuckeWebAPINew\obj\Release\HuckeWEBAPI.pdb
+C:\DevProjects\Programming\React\HuckeWebAPINew\obj\Release\HuckeWEBAPI.csproj.AssemblyReference.cache
