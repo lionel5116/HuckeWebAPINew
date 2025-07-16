@@ -18,6 +18,8 @@ namespace HuckeWEBAPI.Models
         public int CurrentPosition { get; set; }
 
         public string CurrentPositionName { get; set; }
+
+        public string UpdatedBy { get; set; }
         public string fake_id { get; set; }
     }
 }
