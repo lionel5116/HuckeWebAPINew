@@ -34,7 +34,7 @@ namespace HuckeWEBAPI.Controllers
                                        a.Position_Name,
                                        ROW_NUMBER() OVER(ORDER BY(SELECT NULL)) AS fake_id
                                        FROM[YPBI_HPAOS_YPAOS_AUTH_POS_REPORT] a
-                                        WHERE a.Employee = @EmployeeID";
+                                       WHERE a.Employee = @EmployeeID";
 
 
             var connectionString = s_ConnectionString_leveling;
@@ -163,17 +163,20 @@ namespace HuckeWEBAPI.Controllers
             List<Leveling> lstLevelingTableData = new List<Leveling>();
 
             string SQLCommandText = @"Select a.CampusName,
-                                    a.EmployeeID,
+                                     a.EmployeeID,
                                      a.EmployeeName,
 		                             PositionDescription =  CONCAT(a.CurrentPosition, ' - ' + a.CurrentPositionName),
 		                             a.Division,
 		                             b.Status,
 		                             b.ActionType,
+                                     c.CERTIFICATIONS,
 		                             ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fake_id
 		                             from Employee a
 		                             left join
 	                                 Leveling b
 		                             on a.EmployeeID = b.EmployeeID
+                                     left join [dbo].[EMPLOYEE_CERT_TABLE] c
+                                     on a.EmployeeID = c.Employee
 		                             WHERE
 		                             a.Division = @Division";
 
@@ -200,7 +203,8 @@ namespace HuckeWEBAPI.Controllers
                         oLevelingTable.PositionDescription = row["PositionDescription"].ToString();
                         oLevelingTable.Status = row["Status"].ToString();
                         oLevelingTable.ActionType = row["ActionType"].ToString();
-                        oLevelingTable.fake_id = row["fake_id"].ToString();
+                        oLevelingTable.CERTIFICATIONS = row["CERTIFICATIONS"].ToString();
+                        oLevelingTable.fake_id = row["fake_id"].ToString();  //CERTIFICATIONS
 
                         lstLevelingTableData.Add(oLevelingTable);
                         oLevelingTable = null;
@@ -212,6 +216,50 @@ namespace HuckeWEBAPI.Controllers
         }
 
         #endregion EmployeeData
+
+        #region certData
+        [Route("api/leveling/fetchCERTData/{employeeID}")]
+        [HttpGet]
+        public List<CertificationData> fetchCERTData(string employeeID)
+        {
+            CertificationData oCERTData;
+            List<CertificationData> lstCERTData = new List<CertificationData>();
+
+          
+            string SQLCommandText = "";
+           
+            SQLCommandText = @"Select [Employee], EmployeeName,CERTIFICATIONS As Certification from EMPLOYEE_CERT_TABLE
+                             WHERE [Employee] = @employeeID";
+            
+            var connectionString = s_ConnectionString_leveling;
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@employeeID", employeeID);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oCERTData = new CertificationData();
+                        oCERTData.Employee = row["Employee"].ToString();
+                        oCERTData.EmployeeName = row["EmployeeName"].ToString();
+                        oCERTData.Certification = row["Certification"].ToString();
+
+                        lstCERTData.Add(oCERTData);
+                        oCERTData = null;
+                    }
+                }
+            }
+
+            return lstCERTData;
+        }
+        #endregion certData
 
 
 

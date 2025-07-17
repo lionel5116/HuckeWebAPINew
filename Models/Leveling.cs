@@ -19,6 +19,8 @@ namespace HuckeWEBAPI.Models
 
         public string ActionType { get; set; }
 
+        public string CERTIFICATIONS { get; set; }
+
         public string fake_id { get; set; }
     }
 }
