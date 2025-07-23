@@ -261,7 +261,72 @@ namespace HuckeWEBAPI.Controllers
         }
         #endregion certData
 
+        #region PositionManagement
+        [Route("api/leveling/fetchAllPositionsBySchoolNameLeveling/{SchoolName}")]
+        [HttpGet]
+        public List<Positions> fetchAllPositionsBySchoolNameLeveling(string SchoolName)
+        {
+            Positions oPositions;
+            List<Positions> lstPositionData = new List<Positions>();
 
+            var connectionString = s_ConnectionString_leveling;
+            string SQLCommandText = "";
+
+
+
+            /*FIX BELOW TO ACCOUNT FOR KEYDATE 
+            SQLCommandText = @"SELECT distinct a.Position as PositionNumber,a.[Position_Name] as Position, CONVERT(varchar(20),a.Position) + ' - ' + a.[Position_Name] AS CMBPos,
+                              
+							  FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+							   LEFT JOIN CrossWalk b on a.Position = b.PositionID
+                              WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
+                              AND
+                              [Org_Unit_Name] =  @SchoolName
+                                  
+                              AND a.KeyDate = CAST(CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01' AS DATE) --added 03/25/2025 for obsolete
+                              order by
+                              [Position]";
+
+            */
+
+            SQLCommandText = @"SELECT distinct
+            a.Position as PositionNumber,
+            a.[Position_Name] as Position,
+            CONVERT(varchar(20), a.Position) + ' - ' + a.[Position_Name] AS CMBPos
+            FROM YPBI_HPAOS_YPAOS_AUTH_POS_REPORT a
+             WHERE LEN([Org_Unit_Name]) > 2 AND NES = 'NES'
+             AND
+             [Org_Unit_Name] =  @SchoolName
+             AND a.KeyDate = CAST(CAST(YEAR(GETDATE()) AS VARCHAR) + '-09-01' AS DATE)--added 03 / 25 / 2025 for obsolete
+             order by
+             [Position]";
+   
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@SchoolName", SchoolName);
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        oPositions = new Positions();
+                        oPositions.Position = row["Position"].ToString();
+                        oPositions.PositionNumber = row["PositionNumber"].ToString();
+                        oPositions.CMBPos = row["CMBPos"].ToString();
+                        lstPositionData.Add(oPositions);
+                        oPositions = null;
+                    }
+                }
+            }
+
+            return lstPositionData;
+        }
+        #endregion  PositionManagement
 
     }
 }
