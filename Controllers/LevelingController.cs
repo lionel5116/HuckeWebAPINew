@@ -328,5 +328,74 @@ namespace HuckeWEBAPI.Controllers
         }
         #endregion  PositionManagement
 
+        #region Capping
+        [Route("api/leveling/fetchCappingData/")]
+        [HttpGet]
+        public List<Capping> fetchCappingData()
+        {
+           
+            List<Capping> lstCappingData = new List<Capping>();
+
+            var connectionString = s_ConnectionString_leveling;
+            string SQLCommandText = "";
+
+
+
+            SQLCommandText = @"SELECT Campus,Grade,Program,Enrollment,RatioDivisor,
+                               TeacherAPR,StaffRatio,StaffPlusMinus,CapStatus,
+                               Guideline,fake_id,Waiver
+                               FROM Capped";
+
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(SQLCommandText, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                
+                    da.SelectCommand = cmd;
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        try
+                        {
+                            Capping oCappings = new Capping();
+                            oCappings.Campus = row["Campus"].ToString();
+                            oCappings.Grade = row["Grade"].ToString();
+                            oCappings.Program = row["Program"].ToString();
+                            oCappings.Enrollment = int.Parse(row["Enrollment"].ToString());
+                            oCappings.RatioDivisor = int.Parse(row["RatioDivisor"].ToString());
+                            oCappings.TeacherAPR = int.Parse(row["TeacherAPR"].ToString());
+                            oCappings.StaffRatio = int.Parse(row["StaffRatio"].ToString());
+                            oCappings.StaffPlusMinus = row["StaffPlusMinus"].ToString();
+                            oCappings.CapStatus = row["CapStatus"].ToString();
+                            oCappings.Guideline = row["Guideline"].ToString();
+                            oCappings.Waiver = row["Waiver"].ToString();
+                            oCappings.fake_id = int.Parse(row["fake_id"].ToString());
+
+                            lstCappingData.Add(oCappings);
+                            // Setting oCappings to null here is not necessary as it will be out of scope 
+                            // and a new one is created in the next iteration.
+                            // oCappings = null; 
+                        }
+                        catch (Exception ex)
+                        {
+                            // You can handle the exception here. For example, log the error
+                            // or skip the problematic row and continue with the next one.
+                            // For debugging purposes, you might want to print the error:
+                            Console.WriteLine("An error occurred while processing a row: " + ex.Message);
+                            // Depending on your requirements, you might want to 'continue;' 
+                            // to the next iteration or 'break;' the loop.
+                        }
+                    }
+                }
+            }
+
+            return lstCappingData;
+        }
+        #endregion Capping
+
     }
 }
