@@ -365,7 +365,17 @@ namespace HuckeWEBAPI.Controllers
                             oCappings.Campus = row["Campus"].ToString();
                             oCappings.Grade = row["Grade"].ToString();
                             oCappings.Program = row["Program"].ToString();
-                            oCappings.Enrollment = int.Parse(row["Enrollment"].ToString());
+
+                            if(row.IsNull("Enrollment"))
+                            {
+                                oCappings.Enrollment = 0;
+                            }
+                            else
+                            {
+                                oCappings.Enrollment = int.Parse(row["Enrollment"].ToString());
+                            }
+                           
+
                             oCappings.RatioDivisor = int.Parse(row["RatioDivisor"].ToString());
                             oCappings.TeacherAPR = int.Parse(row["TeacherAPR"].ToString());
                             oCappings.StaffRatio = int.Parse(row["StaffRatio"].ToString());
@@ -394,6 +404,50 @@ namespace HuckeWEBAPI.Controllers
             }
 
             return lstCappingData;
+        }
+
+        [HttpPost]
+        [Route("api/leveling/UpdateCappingRecord")]
+        public bool UpdateCappingRecord([FromBody] Capping oCappingData)
+        {
+            bool bSuccess = false;
+
+
+            var connectionString = s_ConnectionString_leveling;
+           
+
+            const string sql2 = @"UPDATE Capped SET 
+                                       Enrollment = @Enrollment 
+                                       WHERE Campus = @Campus AND Program = @Program";
+
+            using (SqlConnection CONN = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql2, CONN))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    cmd.Parameters.AddWithValue("@Campus", oCappingData.Campus);
+                    cmd.Parameters.AddWithValue("@Program", oCappingData.Program);
+                    cmd.Parameters.AddWithValue("@Enrollment", oCappingData.Enrollment);
+                    da.SelectCommand = cmd;
+
+                    CONN.Open();
+                    int nRecsAffected = cmd.ExecuteNonQuery();
+                    if (nRecsAffected > 0)
+                    {
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        bSuccess = false;
+                    }
+                    CONN.Close();
+
+
+                }
+            }
+
+            return bSuccess;
         }
         #endregion Capping
 
