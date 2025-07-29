@@ -449,6 +449,65 @@ namespace HuckeWEBAPI.Controllers
 
             return bSuccess;
         }
+
+
+        [HttpGet]
+        [Route("api/leveling/UpdateCappingRecordByID/{args}")]
+        public bool UpdateCappingRecordByID(string args)
+        {
+            // 1. Validate the input first
+            if (string.IsNullOrWhiteSpace(args))
+            {
+                return false;
+            }
+
+            string[] myArgs = args.Split('|');
+            if (myArgs.Length != 2)
+            {
+                // Invalid arguments format
+                return false;
+            }
+
+            // Use TryParse for safe conversion from string to int
+            if (!int.TryParse(myArgs[0], out int enrollment) || !int.TryParse(myArgs[1], out int fakeId))
+            {
+                // One of the arguments was not a valid number
+                return false;
+            }
+
+            try
+            {
+                string connectionString = s_ConnectionString_leveling;
+
+                // 2. Use a parameterized query to prevent SQL injection
+                string sqlQuery = "UPDATE Capped SET Enrollment = @Enrollment WHERE fake_id = @FakeId;";
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand(sqlQuery, conn))
+                    {
+                        // 3. Add parameters safely
+                        cmd.Parameters.AddWithValue("@Enrollment", enrollment);
+                        cmd.Parameters.AddWithValue("@FakeId", fakeId);
+
+                        conn.Open();
+
+                        // 4. Use ExecuteNonQuery() for UPDATE, INSERT, DELETE commands
+                        // It returns the number of rows affected.
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                        // 5. Return true if exactly one row was updated
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception in a real application (e.g., using Serilog, NLog)
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
+        }
         #endregion Capping
 
     }
