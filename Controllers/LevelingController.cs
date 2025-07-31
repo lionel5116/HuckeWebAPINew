@@ -14,7 +14,10 @@ namespace HuckeWEBAPI.Controllers
 {
     public class LevelingController : ApiController
     {
-        public string s_ConnectionString_leveling = ConfigurationManager.AppSettings["ConnectionString_Leveling"].ToString();
+        // public string s_ConnectionString_leveling = ConfigurationManager.AppSettings["ConnectionString_Leveling"].ToString();
+
+        //MOVED TO HISDCustomDevAppsWebAPI  ****************************
+        public string s_ConnectionString_leveling = null;
 
 
         #region EmployeeData
